@@ -11,18 +11,15 @@
 
 using namespace std;
 
-//To-Do List:
-//Print $ on every command line for user input.
-//When user input is accepted, first go through looking for a stop in ; or a space for an executable. Then, execute a function that will fork + attempt to run executable.
-//If executable run is not successful, output command not found or something. if found, executable will run. End the child process either way. Don't forget perror.
-//Parent child should have been on wait, then resume by continuing to ask for user-input.
+//To Do List:
+//Create Connectors && || and ; and provide functionality for them.
 
 void exit(int a)
 {
 	return;
 }
 
-void readcommand(char* cmdinput[])
+void readcommand(char *firstparse[])
 {
 	int pid = fork();
 	if(pid == -1)
@@ -32,52 +29,106 @@ void readcommand(char* cmdinput[])
 	}
 	else if(pid == 0)
 	{
-		//Check executable here.
-		cout << "Got to child process. Checking/running executable." << endl;
-		if(-1 == execvp(cmdinput[0], cmdinput))
+		if(-1 == execvp(firstparse[0], firstparse))
 		{
 			perror("There was an error running execvp.");
 		}
-		//likely where commands + extensions are executed here.
 		exit(1);
 	}
 	else if(pid > 0)
 	{
 		if(-1 == wait(0))
 			perror("There was an error with wait. ");
-		cout << "Returning to parent function." << endl;
 		exit(1);
+	}
+}
+
+void readcommandand(char *firstparse[], char *secondparse[])
+{
+	int pid = fork();
+	if(pid == -1)
+	{
+		perror("Fork error.");
+		exit(1);
+	}
+	else if(pid == 0)
+	{
+		if(-1 == execvp(firstparse[0], firstparse))
+		{
+			perror("And case failed. Second parse will not run.");
+		}
+		else
+		{
+			if(-1 == execvp(secondparse[0], secondparse))
+				perror("Second and case failed.");
+		}
+		exit(1);
+	}
+	else if(pid > 1)
+	{
+		if(-1 == wait(0))
+			perror("There was an error using wait.");
+			exit(1);
 	}
 }
 
 void commandprompt()
 {
 	cout << "$ ";
-	char terminput[10000];
-	cin.getline(terminput, 10000, '\n');
-	char* cmdinput[100];
-	bool firstword = true;
+	
+	char userinput[50000];
+	cin.getline(userinput, 50000, '\n');
 	char *token;
+	token = strtok(userinput, " ");
+	
 	int i = 0;
-	token = strtok(terminput, " ");
+	bool noconnectors = true;
+	char *parsedline[50];
 	while(token != NULL)
 	{
-		cmdinput[i] = token;
-		token = strtok(NULL, " ");
-		i++;
+		string s = token;
+		if(token[0] == '#')
+		{
+			break;
+		}
+		//else if(token[0] == '&' && token[1] == '&')
+		//{
+		//	noconnectors = false;
+		//	char* andsituation[50];
+	//		int j = 0;
+	//		while(token != NULL)
+	//		{
+	//			token = strtok(NULL, " " );
+	//			andsituation[j] = token;
+	//			j++;
+	//		}
+	//		readcommandand(parsedline, andsituation);
+	//		break;
+	//	}
+		//else if(token[0] == '|' && token[1] == '|')
+		//{
+
+		//}
+	//	else if(s[s.size()-1] == ';')
+	//	{
+	//		
+	//	}
+//		else
+//		{
+			parsedline[i] = token;
+			token = strtok(NULL, " ");
+			i++;
+//		}
 	}
-	cout << "Entered input. Running fork()." << endl;
-
-	readcommand(cmdinput);
+	if(noconnectors)
+	{
+		readcommand(parsedline);
+	}
 }
-
 
 
 int main(int argc, char** argv)
 {
-	vector<string> readline;
-
-	char* parsedargv[100];
 	int count = 0;
 	while(count < 3)
 	{
