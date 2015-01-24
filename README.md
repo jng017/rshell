@@ -27,5 +27,6 @@ As this is still a project in development, this list will be updated with bugs, 
 ```
 *Unable to parse more than 2 connectors in a single command prompt.
 *Unable to comprehend a combination of && and || connectors in a single command prompt.
-*The code suffers from an extensive algorithm that, at best, only works for 1 occurence of connectors per line or ; connector parse.
+*Algorithm for determining connectors is too complex.
+*Or statement connector used with 2 echoes results in an error message for both echo executables.
 ```

@@ -81,7 +81,7 @@ bool commandprompt()
 			{
 				exitshell = true;
 			}
-			if(token[j] == '#')
+			if(token[0] == '#')
 			{
 				noextras = false;
 				break;
