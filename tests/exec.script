@@ -1,32 +1,57 @@
-Script started on Fri 23 Jan 2015 10:50:20 PM PST
-]0;jeffrey@jeffrey-N56DP: ~/cs100/hw0jeffrey@jeffrey-N56DP:~/cs100/hw0$ make[K[K[K[Km[Kmake
+Script started on Fri 23 Jan 2015 11:14:24 PM PST
+]0;jeffrey@jeffrey-N56DP: ~/cs100/hw0jeffrey@jeffrey-N56DP:~/cs100/hw0$ make
 mkdir bin
 g++ -Wall -Werror -ansi -pedantic -o bin/rshell src/main.cpp
-]0;jeffrey@jeffrey-N56DP: ~/cs100/hw0jeffrey@jeffrey-N56DP:~/cs100/hw0$ ls[K[Kbin/rshell
+]0;jeffrey@jeffrey-N56DP: ~/cs100/hw0jeffrey@jeffrey-N56DP:~/cs100/hw0$ bin/rshell
 $ ls
-bin  exec.script  LICENSE  Makefile  README.md	rshell	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	rshell	src  test  tests
 $ ls -a
-.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  rshell  src  tests
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  rshell  src  test	tests
 $ echo hello world
 hello world
-$ ls || echo does thi  s owrk?     work?
-bin  exec.script  LICENSE  Makefile  README.md	rshell	src  tests
-$ ls && echo Test for truth
-bin  exec.script  LICENSE  Makefile  README.md	rshell	src  tests
-Test for truth
-$ lssssss && echo Will I run?
-There was an error running execvp.: No such file or directory
-$ ls ; p   asdf  ;    ; mkdir test
-bin  exec.script  LICENSE  Makefile  README.md	rshell	src  tests
-There was an error running execvp.: No such file or directory
-$ #    This is a comment.
-$ ;
-$ ;;     ls  ;
+$ ls    echo hello world || ls
+hello world
+$ echo ell        ls |||  echo hello world
 bin  exec.script  LICENSE  Makefile  README.md	rshell	src  test  tests
-$ po  po  po  p po  p p p lsssss || echo maybe I       maybe this will work
+$ lasdf     echoa hello world }}  || ls
 There was an error running execvp.: No such file or directory
+$ ls ||    sssss || echo hello world
 There was an error running execvp.: No such file or directory
-$ echo#thisma  willnotwork
-$ ^C
+$ ls && echo and w     and his   this will run
+bin  exec.script  LICENSE  Makefile  README.md	rshell	src  test  tests
+and this will run
+$ echo ls will run too && ls
+ls will run too
+$ echo hello && mkdir test || echo world
+hello
+hello | echo world echo
+$ ls -a; echo there are semicolons
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  rshell  src  test	tests
+there are semicolons ls ls 
+$ ; ls
+ls: cannot access : No such file or directory
+ls: cannot access are: No such file or directory
+ls: cannot access semicolons: No such file or directory
+ls: cannot access ; ls: No such file or directory
+ls: cannot access ; ls: No such file or directory
+ls: cannot access : No such file or directory
+$ ll ;;   ;
+$ ;;
+$ #co  this isa comm       a comment.
+$ # echo#helloworld
+There was an error running execvp.: No such file or directory
+$ echo comments #inbetween do not work
+comments #inbetween do not work
+$ exi   ls -a; echo hello && mkdir test2
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  rshell  src  test	tests
+hello
+$ ls -a; echo this will not work && mkdir fail || echo worl    world; cd test
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  rshell  src  test	tests
+this will not work
+this will not work & mkdir fail ||
+$ exit
+$ ex  ^C
 ]0;jeffrey@jeffrey-N56DP: ~/cs100/hw0jeffrey@jeffrey-N56DP:~/cs100/hw0$ exit
-Script done on Fri 23 Jan 2015 10:55:42 PM PST
+exit
+
+Script done on Fri 23 Jan 2015 11:21:48 PM PST

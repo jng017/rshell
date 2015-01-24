@@ -19,7 +19,6 @@ int exit(int a)
 	{
 		return 0;
 	}
-
 }
 
 int readcommand(char *firstparse[])
