@@ -36,8 +36,14 @@ int readcommand(char *firstparse[])
 	else if(pid == 0)
 	{
 		if(-1 == execvp(firstparse[0], firstparse))
+		{
 			perror("There was an error running execvp.");
-		return exit(-1);
+			return exit(-1);
+		}
+		else
+		{
+			return exit(0);
+		}
 	}
 	else if(pid > 0)
 	{
@@ -48,7 +54,7 @@ int readcommand(char *firstparse[])
 	return exit(0);
 }
 
-void commandprompt()
+bool commandprompt()
 {
 	cout << "$ ";
 	
@@ -64,38 +70,43 @@ void commandprompt()
 	int i, k, andcounter, andcounter2, orcounter, orcounter2 = 0;
 	bool noextras = true;
 	bool andcase = false;
+	bool exitshell = false;
 	bool orcase = false;
 	while(token != NULL)
 	{
 		k = i;
 		nospaces = true;
 		andcase = false;
-		orcase = false;
-		cout << "Current Tokenized String: " << token << " i: " << i << " k: " << k << endl;
+		orcase = false;	
 		for(int j = 0; token[j] != '\0'; ++j)
 		{
+			if(token[j] == 'e' && token[j+1] == 'x' && token[j+2] == 'i' && token[j+3] == 't')
+			{
+				exitshell = true;
+			}
 			if(token[j] == '#')
 			{
 				noextras = false;
-				cout << "Experiencing comment case. Breaking from loop." << endl;
 				break;
 			}
 			else if(token[j] == '&' && token[j+1] == '&')
 			{
 				noextras = false;
 				andcase = true;
-				cout << "Experiencing and case. Executing protocol." << endl;
 			}
 			else if(token[j] == '|' && token[j+1] == '|')
 			{
 				noextras = false;
 				orcase = true;
-				cout << "Experiencing or case. Executing protocol." << endl;
 			}
 			else
 			{
 				continue;
 			}
+		}
+		if(exitshell)
+		{
+			break;
 		}
 		if(andcase)
 		{
@@ -213,22 +224,17 @@ void commandprompt()
 				orcounter2++;
 			}
 			char* secondparse_or[50];
-			cout << "Second Array(Or): " ;
 			for(int p = (k+orcounter) ; p < (k+orcounter+orcounter2); ++p)
 			{
 				secondparse_or[p-(k+orcounter)] = parsedline[p];
-				cout << parsedline[p] << " at " << (p-(k+orcounter)) << " ";
 			}
 
-			if(-1 == readcommand(firstparse_or))
+			if(-1 != readcommand(firstparse_or))
 			{
-				if(-1 != readcommand(secondparse_or))
-				{
-					break;
-				}
+				break;
 			}
+			readcommand(secondparse_or);
 		}
-		
 		else
 		{
 			token2 = strtok_r(token, " ", &save_2);
@@ -256,17 +262,22 @@ void commandprompt()
 			token = strtok_r(NULL, ";", &save_1);
 		}
 	}
+	if(exitshell)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
 
 int main(int argc, char** argv)
 {
-	int count = 0;
-	while(count < 5)
-	{
-		
+	while(commandprompt())
+	{	
 		commandprompt();
-		count++;
 	}
 	cout << "Exited shell. Good day." << endl;
 	return 0;
