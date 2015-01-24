@@ -1,10 +1,9 @@
-VPATH = src
-
-all: rshell.cpp
-	g++ -Wall -Werror -ansi -pedantic
-
-rshell: rshell.cpp
-	g++ -Wall -Werror -ansi -pedantic rshell.cpp
+all: 
+	g++ -Wall -Werror -ansi -pedantic -o bin/rshell src/main.cpp
+shell:
+	g++ -ansi -pedantic -Wall -Werror -o bin/rshell src/main,cpp
 
 bin:
 	mkdir bin
+clean:
+	rm -rf bin
