@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -10,8 +9,6 @@
 
 using namespace std;
 
-//To Do List:
-//Create Connectors && || and ; and provide functionality for them.
 int exit(int a)
 {
 	if(a == -1)
@@ -167,10 +164,7 @@ bool commandprompt()
 			{
 				break;
 			}
-			else
-			{
-				readcommand(secondparse_and);
-			}
+			readcommand(secondparse_and);
 
 		}
 
