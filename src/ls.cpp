@@ -29,12 +29,14 @@ void  parseinput(vector<string> &directories)
 			if(token[1] == 'a')
 			{
 				aflag = true;
+				cout << "-a component activated." << endl;
 			}
-			if(token[1] == 'l')
+			if(token[1] == 'l' || token[2] == 'l')
 			{
 				lflag = true;
+				cout << "-l component activated." << endl;
 			}
-			if(token[1] == 'r')
+			if(token[1] == 'R' || token[2] == 'R')
 			{
 				rflag = true;
 			}
@@ -49,7 +51,36 @@ void  parseinput(vector<string> &directories)
 	delete [] cstr;
 }
 
-void read_directory(vector<string> &directories)
+
+void list_long(dirent *direntp)
+{
+	
+}
+
+//Performs directory listing of all sub-directories from within destination. Place in function
+//seems to be fine; it still needs to look for the directories in the current directory
+//and then the recursive function would run the same function inside those subdirectories?
+void list_recursive(dirent *direntp)
+{
+	
+}
+
+void list_basic(dirent *direntp)
+{
+	if(aflag)
+	{		
+		cout << direntp->d_name << endl;
+	}
+	else
+	{
+		if(direntp->d_name[0] != '.')
+		{
+			cout << direntp->d_name << endl;
+		}	
+	}
+}
+
+void list_entries(vector<string> &directories)
 {
 	char *dirName = new char[100];
 	for(unsigned i = 0; i < directories.size(); i++)
@@ -63,11 +94,35 @@ void read_directory(vector<string> &directories)
 		else
 		{
 			dirent *direntp;
+			int errcheck;
 			while((direntp = readdir(dirp)))
 			{
-				cout << direntp->d_name << endl;
+				errcheck = errno;
+				if(errcheck == -1)
+				{
+					perror("Error with readdir.");
+					break;
+				}
+				else
+				{
+					if(lflag)
+					{
+						list_long(direntp);
+					}
+					else if(rflag)
+					{
+						list_recursive(direntp);
+					}
+					else
+					{
+						list_basic(direntp);
+					}
+				}
 			}
-			closedir(dirp);
+			if(-1 == closedir(dirp))
+			{
+				perror("error with closedir.");
+			}
 		}
 		
 	}
@@ -81,5 +136,5 @@ int main()
 	//to the function for it to work.
 	vector<string> directories;
 	parseinput(directories);
-	read_directory(directories);
+	list_entries(directories);
 }
