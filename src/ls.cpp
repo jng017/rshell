@@ -140,9 +140,66 @@ void sort_files(vector<string> &files)
 	}
 }
 
+template<typename T> int numDigits(T number)
+{
+	int digits = 0;
+	if(number < 0) digits = 1;
+	while(number)
+	{
+		number/= 10;
+		digits++;
+	}
+	return digits;
+}
+
+template<typename T> void printaligned(T t, const int& width)
+{
+	cout << right << setw(width) << setfill(' ') << t;
+}
+
+struct filedet
+{
+	string permstring;
+	nlink_t num_links;
+	char* username;
+	char* groupname;
+	off_t bytesize;
+	string mon;
+	string day;
+	string hourmin;
+	string filename;
+};
+
+void print_long(vector<filedet> filedetstorage, blksize_t total_blocks, unsigned userWidth, unsigned groupWidth, int digitlink, int digitnumbytes)
+{
+	cout << "total" << total_blocks << endl;
+	for(unsigned i = 0; i < filedetstorage.size(); i++)
+	{
+		printaligned(filedetstorage[i].permstring, filedetstorage[i].permstring.size());
+		printaligned(filedetstorage[i].num_links, digitlink+1);
+		printaligned(filedetstorage[i].username, userWidth+1);
+		printaligned(filedetstorage[i].groupname, groupWidth+1);
+		printaligned(filedetstorage[i].bytesize, digitnumbytes+1);
+		printaligned(filedetstorage[i].mon, 4);
+		printaligned(filedetstorage[i].day, 3);
+		printaligned(filedetstorage[i].hourmin, 6);
+		cout << " " << filedetstorage[i].filename;
+		cout << endl;
+	}
+
+}
 void list_long(vector<string> &files)
 {
+	
+	vector<filedet> filedetstorage;
 	blksize_t total_blocks;
+	unsigned userWidth = 0;
+	unsigned groupWidth = 0;
+	int digitlink = 0;
+	int digitnumbytes = 0;
+
+	//	cout << left << permstring << " " << info.st_nlink << " " << userinfo->pw_name << " " << groupinfo->gr_name << " " << info.st_size << " " << mon << " " << day << " " << hourmin << " "<< files[i] << endl;
+
 	for(unsigned i = 0; i < files.size(); i++)
 	{
 		const char* c;
@@ -153,7 +210,7 @@ void list_long(vector<string> &files)
 			perror("Error with stat");
 			exit(EXIT_SUCCESS);
 		}
-		total_blocks += info.st_blksize;
+		total_blocks += info.st_blocks;
 		string permstring = "";
 		mode_t perm = info.st_mode;
 		if(S_ISDIR(perm) == 1)
@@ -769,10 +826,35 @@ void list_long(vector<string> &files)
 			hourmin += "60";
 		}
 	//	cout << "Test Time Values: " << mon << " " << day << " " << hourmin << " ";
-		cout << left << permstring << " " << info.st_nlink << " " << userinfo->pw_name << " " << groupinfo->gr_name << " " << info.st_size << " " << mon << " " << day << " " << hourmin << " "<< files[i] << endl;
-		//cout << (long) info.st_ino; For printing inode
+	//	cout << left << permstring << " " << info.st_nlink << " " << userinfo->pw_name << " " << groupinfo->gr_name << " " << info.st_size << " " << mon << " " << day << " " << hourmin << " "<< files[i] << endl;
+		if(strlen(userinfo->pw_name) > userWidth)
+		{
+			userWidth = strlen(userinfo->pw_name);
+		}
+		if(strlen(groupinfo->gr_name) > groupWidth)
+		{
+			groupWidth = strlen(groupinfo->gr_name);
+		}
+		if(numDigits(info.st_nlink) > digitlink)
+		{
+			digitlink = numDigits(info.st_nlink);
+		}
+		if(numDigits(info.st_size) > digitnumbytes)
+		{
+			digitnumbytes = numDigits(info.st_size);
+		}
+		filedetstorage.push_back(filedet());
+		filedetstorage[i].permstring = permstring;
+		filedetstorage[i].num_links = info.st_nlink;
+		filedetstorage[i].username = userinfo->pw_name;
+		filedetstorage[i].groupname = groupinfo->gr_name;
+		filedetstorage[i].bytesize = info.st_size;
+		filedetstorage[i].mon = mon;
+		filedetstorage[i].day = day;
+		filedetstorage[i].hourmin = hourmin;
+		filedetstorage[i].filename = files[i];
 	}
-	cout << "total" << (total_blocks)/160 << endl;
+	print_long(filedetstorage, total_blocks, userWidth, groupWidth, digitlink, digitnumbytes);
 }
 
 int main()
