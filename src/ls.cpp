@@ -63,9 +63,6 @@ void  parseinput(vector<string> &directories)
 //Performs directory listing of all sub-directories from within destination. Place in function
 //seems to be fine; it still needs to look for the directories in the current directory
 //and then the recursive function would run the same function inside those subdirectories?
-void list_recursive(dirent *direntp)
-{
-}
 
 void sort_basic(dirent *direntp, vector<string> &files)
 {
@@ -82,46 +79,35 @@ void sort_basic(dirent *direntp, vector<string> &files)
 	}
 }
 
-void list_entries(vector<string> &directories, vector<string> &files)
+void list_entries(string directory, vector<string> &files)
 {
 	char *dirName = new char[100];
-	for(unsigned i = 0; i < directories.size(); i++)
+	strcpy(dirName, directory.c_str());
+	DIR *dirp = opendir(dirName);
+	if(dirp == NULL)	
 	{
-		strcpy(dirName, directories[i].c_str());
-		DIR *dirp = opendir(dirName);
-		if(dirp == NULL)
+		perror("Error with opendir.");
+		exit(EXIT_SUCCESS);
+	}
+	else
+	{
+		dirent *direntp;
+		int errcheck;
+		while((direntp = readdir(dirp)))
 		{
-			perror("Error with opendir.");
+			errcheck = errno;
+			if(errcheck == -1)
+			{
+				perror("Error with readdir.");
+				break;
+			}
+				sort_basic(direntp, files);
+		}
+		if(-1 == closedir(dirp))		
+		{
+			perror("error with closedir.");
 			exit(EXIT_SUCCESS);
 		}
-		else
-		{
-			dirent *direntp;
-			int errcheck;
-			while((direntp = readdir(dirp)))
-			{
-				errcheck = errno;
-				if(errcheck == -1)
-				{
-					perror("Error with readdir.");
-					break;
-				}
-				if(rflag)
-				{
-					list_recursive(direntp);	
-				}
-				else
-				{
-					sort_basic(direntp, files);
-				}
-			}
-			if(-1 == closedir(dirp))
-			{
-				perror("error with closedir.");
-				exit(EXIT_SUCCESS);
-			}
-		}
-		
 	}
 	delete [] dirName;
 }
@@ -186,9 +172,9 @@ void print_long(vector<filedet> filedetstorage, blkcnt_t total_blocks, unsigned 
 		cout << " " << filedetstorage[i].filename;
 		cout << endl;
 	}
-
 }
-void list_long(vector<string> &files)
+
+void list_long(vector<string> files, string directory)
 {
 	
 	vector<filedet> filedetstorage;
@@ -198,12 +184,12 @@ void list_long(vector<string> &files)
 	int digitlink = 0;
 	int digitnumbytes = 0;
 
-	//	cout << left << permstring << " " << info.st_nlink << " " << userinfo->pw_name << " " << groupinfo->gr_name << " " << info.st_size << " " << mon << " " << day << " " << hourmin << " "<< files[i] << endl;
-
 	for(unsigned i = 0; i < files.size(); i++)
 	{
+		string path = directory + "/" + files[i];
 		const char* c;
-		c = files[i].c_str();
+		c = path.c_str();
+		//c = files[i].c_str();
 		struct stat info;
 		if(-1 == stat(c, &info))	
 		{
@@ -825,8 +811,7 @@ void list_long(vector<string> &files)
 		{
 			hourmin += "60";
 		}
-	//	cout << "Test Time Values: " << mon << " " << day << " " << hourmin << " ";
-	//	cout << left << permstring << " " << info.st_nlink << " " << userinfo->pw_name << " " << groupinfo->gr_name << " " << info.st_size << " " << mon << " " << day << " " << hourmin << " "<< files[i] << endl;
+
 		if(strlen(userinfo->pw_name) > userWidth)
 		{
 			userWidth = strlen(userinfo->pw_name);
@@ -857,6 +842,22 @@ void list_long(vector<string> &files)
 	print_long(filedetstorage, total_blocks, userWidth, groupWidth, digitlink, digitnumbytes);
 }
 
+void list_recursive(vector<string> &files)
+{
+	//Check if file is a directory. 
+	for(unsigned i = 0; i < files.size(); i++)
+	{
+		const char* c;
+		c = files[i].c_str();
+		struct stat info;
+		if(-1 == stat(c, &info))	
+		{
+			perror("Error with stat");
+			exit(EXIT_SUCCESS);
+		}
+	}	
+}
+
 int main()
 {
 	//Construct char array to work with parsing options, then parse the line, opening the
@@ -865,24 +866,37 @@ int main()
 	vector<string> directories;
 	vector<string> files;
 	parseinput(directories);
-	list_entries(directories, files);
+	for(unsigned i = 0; i < directories.size(); ++i)
+	{
+		if(directories.size() > 1)
+		{
+			if(i > 0)
+			{
+				cout << endl;
+			}
+			cout << directories[i] << ":" << endl;
+		}
+		list_entries(directories[i], files);
+		sort_files(files);
+		if(lflag)
+		{
+			list_long(files, directories[i]);
+		}
+		else
+		{
+			for(unsigned j = 0; j < files.size(); j++)
+			{
+				cout << files[j] << " ";
+			}
+			cout << endl;
+		}
+		files.clear();
+	}
 //	for(unsigned i = 0; i < files.size(); i++)
 //	{
 //		cout << files[i] << " ";
 //	}
 //	cout << endl << "Sorted Files" << endl;
-	sort_files(files);
-	if(lflag)
-	{
-		list_long(files);
-	}
-	else
-	{
-		for(unsigned j = 0; j < files.size(); j++)
-		{
-			cout << files[j] << " ";
-		}
-		cout << endl;
-	}
-	
+
+
 }
