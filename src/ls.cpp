@@ -170,9 +170,9 @@ struct filedet
 	string filename;
 };
 
-void print_long(vector<filedet> filedetstorage, blksize_t total_blocks, unsigned userWidth, unsigned groupWidth, int digitlink, int digitnumbytes)
+void print_long(vector<filedet> filedetstorage, blkcnt_t total_blocks, unsigned userWidth, unsigned groupWidth, int digitlink, int digitnumbytes)
 {
-	cout << "total" << total_blocks << endl;
+	cout << "total " << (total_blocks)/2 << endl;
 	for(unsigned i = 0; i < filedetstorage.size(); i++)
 	{
 		printaligned(filedetstorage[i].permstring, filedetstorage[i].permstring.size());
@@ -192,7 +192,7 @@ void list_long(vector<string> &files)
 {
 	
 	vector<filedet> filedetstorage;
-	blksize_t total_blocks;
+	blkcnt_t total_blocks = 0;
 	unsigned userWidth = 0;
 	unsigned groupWidth = 0;
 	int digitlink = 0;
