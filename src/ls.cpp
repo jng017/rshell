@@ -842,19 +842,27 @@ void list_long(vector<string> files, string directory)
 	print_long(filedetstorage, total_blocks, userWidth, groupWidth, digitlink, digitnumbytes);
 }
 
-void list_recursive(vector<string> &files)
+void list_recursive(string directory, vector<string> &directories, vector<string> &files)
 {
 	//Check if file is a directory. 
 	for(unsigned i = 0; i < files.size(); i++)
 	{
+		string path = directory + "/" + files[i];
 		const char* c;
-		c = files[i].c_str();
+		c = path.c_str();
+		
 		struct stat info;
 		if(-1 == stat(c, &info))	
 		{
 			perror("Error with stat");
 			exit(EXIT_SUCCESS);
 		}
+		mode_t perm = info.st_mode;
+		if(S_ISDIR(perm) == 1)
+		{
+			directories.push_back(c);
+		}
+
 	}	
 }
 
@@ -877,12 +885,16 @@ int main()
 			cout << directories[i] << ":" << endl;
 		}
 		list_entries(directories[i], files);
+		if(rflag)
+		{
+			list_recursive(directories[i], directories, files);
+		}
 		sort_files(files);
 		if(lflag)
 		{
 			list_long(files, directories[i]);
 		}
-		else
+		if(!lflag)
 		{
 			for(unsigned j = 0; j < files.size(); j++)
 			{
