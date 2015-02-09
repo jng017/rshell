@@ -1,0 +1,300 @@
+Script started on Sun 08 Feb 2015 06:31:32 PM PST
+~
+jng017@hammer $ make
+g++ -Wall -Werror -ansi -pedantic -o bin/rshell src/main.cpp
+g++ -Wall -Werror -ansi -pedantic -o bin/ls src/ls.cpp
+~/hw1/rshell
+
+//Basic bin/ls test
+jng017@hammer $ ls[K[Kr[Kls[K[Kbin/ls
+bin LICENSE ls.script Makefile README.md src tests 
+~/hw1/rshell
+
+//ls comparison
+jng017@hammer $ ls
+[0m[01;34mbin[0m/  LICENSE  ls.script  Makefile  README.md  [01;34msrc[0m/  [01;34mtests[0m/
+[m~/hw1/rshell
+
+//bin/ls -a test
+jng017@hammer $ bin/ls -a
+. .. .git bin LICENSE ls.script Makefile README.md src tests 
+~/hw1/rshell
+
+//ls -a comparison
+jng017@hammer $ ls -a
+[0m[01;34m.[0m/  [01;34m..[0m/  [01;34mbin[0m/  [01;34m.git[0m/  LICENSE  ls.script  Makefile  README.md  [01;34msrc[0m/  [01;34mtests[0m/
+[m~/hw1/rshell
+
+//bin/ls -l test
+jng017@hammer $ bin/ls -l
+total 40
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
+~/hw1/rshell
+
+//ls -l comparison
+jng017@hammer $ ls -l
+total 40
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 [0m[01;34mbin[0m/
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 [01;34msrc[0m/
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 [01;34mtests[0m/
+[m~/hw1/rshell
+
+//bin/ls -a -l test
+jng017@hammer $ bin/ls -a -l
+total 52
+drwx------ 6 jng017 csmajs  4096 Feb  8 18:27 .
+drwx------ 3 jng017 csmajs  4096 Feb  8 17:18 ..
+drwx------ 8 jng017 csmajs  4096 Feb  8 18:14 .git
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
+~/hw1/rshell
+
+//bin/ls -l -a test(Should have same output as above)
+jng017@hammer $ ls -a -l
+total 52
+drwx------ 6 jng017 csmajs  4096 Feb  8 18:27 .
+drwx------ 3 jng017 csmajs  4096 Feb  8 17:18 ..
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
+drwx------ 8 jng017 csmajs  4096 Feb  8 18:14 .git
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
+[m~/hw1/rshell
+
+//ls -a -l comparison
+jng017@hammer $ ls -a -l
+total 52
+drwx------ 6 jng017 csmajs  4096 Feb  8 18:27 .
+drwx------ 3 jng017 csmajs  4096 Feb  8 17:18 ..
+drwx------ 8 jng017 csmajs  4096 Feb  8 18:14 .git
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
+~/hw1/rshell
+
+//bin/ls -R test
+jng017@hammer $ bin/ls -R[KR[KR[KR[KR[KR
+.:
+bin LICENSE ls.script Makefile README.md src tests 
+
+./src:
+ls.cpp main.cpp rshell.cpp 
+
+./bin:
+ls rshell 
+
+./tests:
+~/hw1/rshell
+
+//ls -R comparison (Prints in non-alphabetical order - noted)
+jng017@hammer $ ls -R
+.:
+[0m[01;34mbin[0m/  LICENSE  ls.script  Makefile  README.md  [01;34msrc[0m/  [01;34mtests[0m/
+
+./bin:
+[01;32mls[0m*  [01;32mrshell[0m*
+
+./src:
+ls.cpp  main.cpp  rshell.cpp
+
+./tests:
+[m~/hw1/rshell
+
+//bin/ls -R -l test
+jng017@hammer $ ls -R -l
+.:
+total 40
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
+
+./src:
+total 32
+-rw------- 1 jng017 csmajs 15399 Feb  8 18:27 ls.cpp
+-rw------- 1 jng017 csmajs  5012 Feb  8 17:18 main.cpp
+-rw------- 1 jng017 csmajs  5131 Feb  8 17:18 rshell.cpp
+
+./bin:
+total 72
+-rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
+-rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
+
+./tests:
+total 0
+~/hw1/rshell
+
+//bin/ls -l -R test
+jng017@hammer $ ls -l -R
+.:
+total 40
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
+
+./src:
+total 32
+-rw------- 1 jng017 csmajs 15399 Feb  8 18:27 ls.cpp
+-rw------- 1 jng017 csmajs  5012 Feb  8 17:18 main.cpp
+-rw------- 1 jng017 csmajs  5131 Feb  8 17:18 rshell.cpp
+
+./bin:
+total 72
+-rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
+-rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
+
+./tests:
+total 0
+~/hw1/rshell
+
+//bin/ls -lR test
+jng017@hammer $ bin/ls -lR
+.:
+total 40
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
+
+./src:
+total 32
+-rw------- 1 jng017 csmajs 15399 Feb  8 18:27 ls.cpp
+-rw------- 1 jng017 csmajs  5012 Feb  8 17:18 main.cpp
+-rw------- 1 jng017 csmajs  5131 Feb  8 17:18 rshell.cpp
+
+./bin:
+total 72
+-rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
+-rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
+
+./tests:
+total 0
+~/hw1/rshell
+
+//bin/ls -Rl test
+jng017@hammer $ bin/ls -Rl
+.:
+total 40
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
+
+./src:
+total 32
+-rw------- 1 jng017 csmajs 15399 Feb  8 18:27 ls.cpp
+-rw------- 1 jng017 csmajs  5012 Feb  8 17:18 main.cpp
+-rw------- 1 jng017 csmajs  5131 Feb  8 17:18 rshell.cpp
+
+./bin:
+total 72
+-rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
+-rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
+
+./tests:
+total 0
+~/hw1/rshell
+
+//ls -l -R comparison
+jng017@hammer $ ls -l -R
+.:
+total 40
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 [0m[01;34mbin[0m/
+-rw------- 1 jng017 csmajs 18665 Feb  8 17:18 LICENSE
+-rw------- 1 jng017 csmajs     0 Feb  8 18:27 ls.script
+-rw------- 1 jng017 csmajs   310 Feb  8 17:18 Makefile
+-rw------- 1 jng017 csmajs  1297 Feb  8 17:18 README.md
+drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 [01;34msrc[0m/
+drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 [01;34mtests[0m/
+
+./bin:
+total 72
+-rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 [01;32mls[0m*
+-rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 [01;32mrshell[0m*
+
+./src:
+total 32
+-rw------- 1 jng017 csmajs 15399 Feb  8 18:27 ls.cpp
+-rw------- 1 jng017 csmajs  5012 Feb  8 17:18 main.cpp
+-rw------- 1 jng017 csmajs  5131 Feb  8 17:18 rshell.cpp
+
+./tests:
+total 0
+[m~/hw1/rshell
+
+//bin/ls .. explicit file directory test
+jng017@hammer $ bin/ls ..
+rshell 
+~/hw1/rshell
+
+//ls .. comparison
+jng017@hammer $ ls ..
+[0m[01;34mrshell[0m/
+[m~/hw1/rshell
+
+//bin/ls . .. multiple file directory test
+jng017@hammer $ bin/ls . ..
+.:
+bin LICENSE ls.script Makefile README.md src tests 
+
+..:
+rshell 
+~/hw1/rshell
+
+//ls . .. comparison
+jng017@hammer $ bi[K[Kls . ..
+.:
+[0m[01;34mbin[0m/  LICENSE  ls.script  Makefile  README.md  [01;34msrc[0m/  [01;34mtests[0m/
+
+..:
+[01;34mrshell[0m/
+[m~/hw1/rshell
+
+//bin/ls -a explicit file directory test
+jng017@hammer $ bin/ls -a ..
+. .. rshell 
+~/hw1/rshell
+
+//ls comparison
+jng017@hammer $ ls -a ..
+[0m[01;34m.[0m/  [01;34m..[0m/  [01;34mrshell[0m/
+[m~/hw1/rshell
+jng017@hammer $ exit
+exit
+
+Script done on Sun 08 Feb 2015 06:36:54 PM PST

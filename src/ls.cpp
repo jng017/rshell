@@ -37,12 +37,10 @@ void  parseinput(int argc, char* argv[], vector<string> &directories)
 			if(cstr[1] == 'l' || cstr[2] == 'l')
 			{
 				lflag = true;
-				cout << "-l component activated." << endl;
 			}
 			if(cstr[1] == 'R' || cstr[2] == 'R')
 			{
 				rflag = true;
-				cout << "-R component activated." << endl;
 			}
 		}
 		else
