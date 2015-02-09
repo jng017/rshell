@@ -282,10 +282,27 @@ void list_long(vector<string> files, string directory)
 		}
 
 		struct passwd* userinfo;
-		userinfo = getpwuid(info.st_uid);
+		if(NULL == getpwuid(info.st_uid))
+		{
+			perror("Error with getpwuid.");
+			exit(EXIT_SUCCESS);
+		}
+		else
+		{
+			userinfo = getpwuid(info.st_uid);
+		}
 
 		struct group* groupinfo;
-		groupinfo = getgrgid(info.st_gid);
+		if(NULL == getgrgid(info.st_gid))
+		{
+			perror("Error with getgrgid.");
+			exit(EXIT_SUCCESS);
+		}
+		else
+		{
+			groupinfo = getgrgid(info.st_gid);
+		}
+
 
 		//cout << ctime(&info.st_mtime);
 		struct tm* timeinfo;
