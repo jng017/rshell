@@ -876,7 +876,7 @@ int main()
 	parseinput(directories);
 	for(unsigned i = 0; i < directories.size(); ++i)
 	{
-		if(directories.size() > 1)
+		if (rflag|| directories.size() > 1)
 		{
 			if(i > 0)
 			{
@@ -900,7 +900,10 @@ int main()
 			{
 				cout << files[j] << " ";
 			}
-			cout << endl;
+			if(!files.empty())
+			{
+				cout << endl;
+			}
 		}
 		files.clear();
 	}
