@@ -99,11 +99,12 @@ jng017@hammer $ bin/ls -R[KR[KR[KR[KR[KR
 .:
 bin LICENSE ls.script Makefile README.md src tests 
 
+./bin:
+ls rshell 
+
 ./src:
 ls.cpp main.cpp rshell.cpp 
 
-./bin:
-ls rshell 
 
 ./tests:
 ~/hw1/rshell
@@ -134,16 +135,16 @@ drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
 drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
 drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
 
+./bin:
+total 72
+-rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
+-rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
+
 ./src:
 total 32
 -rw------- 1 jng017 csmajs 15399 Feb  8 18:27 ls.cpp
 -rw------- 1 jng017 csmajs  5012 Feb  8 17:18 main.cpp
 -rw------- 1 jng017 csmajs  5131 Feb  8 17:18 rshell.cpp
-
-./bin:
-total 72
--rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
--rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
 
 ./tests:
 total 0
@@ -161,16 +162,16 @@ drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
 drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
 drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
 
+./bin:
+total 72
+-rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
+-rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
+
 ./src:
 total 32
 -rw------- 1 jng017 csmajs 15399 Feb  8 18:27 ls.cpp
 -rw------- 1 jng017 csmajs  5012 Feb  8 17:18 main.cpp
 -rw------- 1 jng017 csmajs  5131 Feb  8 17:18 rshell.cpp
-
-./bin:
-total 72
--rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
--rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
 
 ./tests:
 total 0
@@ -188,16 +189,16 @@ drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
 drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
 drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
 
+./bin:
+total 72
+-rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
+-rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
+
 ./src:
 total 32
 -rw------- 1 jng017 csmajs 15399 Feb  8 18:27 ls.cpp
 -rw------- 1 jng017 csmajs  5012 Feb  8 17:18 main.cpp
 -rw------- 1 jng017 csmajs  5131 Feb  8 17:18 rshell.cpp
-
-./bin:
-total 72
--rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
--rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
 
 ./tests:
 total 0
@@ -215,16 +216,16 @@ drwx------ 2 jng017 csmajs  4096 Feb  8 18:28 bin
 drwx------ 2 jng017 csmajs  4096 Feb  8 18:27 src
 drwx------ 2 jng017 csmajs  4096 Feb  8 17:20 tests
 
+./bin:
+total 72
+-rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
+-rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
+
 ./src:
 total 32
 -rw------- 1 jng017 csmajs 15399 Feb  8 18:27 ls.cpp
 -rw------- 1 jng017 csmajs  5012 Feb  8 17:18 main.cpp
 -rw------- 1 jng017 csmajs  5131 Feb  8 17:18 rshell.cpp
-
-./bin:
-total 72
--rwx------ 1 jng017 csmajs 59939 Feb  8 18:28 ls
--rwx------ 1 jng017 csmajs 11505 Feb  8 18:28 rshell
 
 ./tests:
 total 0
@@ -294,7 +295,67 @@ jng017@hammer $ bin/ls -a ..
 jng017@hammer $ ls -a ..
 [0m[01;34m.[0m/  [01;34m..[0m/  [01;34mrshell[0m/
 [m~/hw1/rshell
-jng017@hammer $ exit
-exit
+
+//bin/ls . .. -R test
+jng017@hammer $ bin/ls . .. -R^M
+.;^M
+bin LICENSE ls.script2 Makefile README.md src tests ^M
+^M
+..;^M
+rshell ^M
+^M
+../rshell;^M
+bin LICENSE ls.script2 Makefile README.md src tests ^M
+^M
+../rshell/bin;^M
+ls rshell ^M
+^M
+../rshell/src;^M
+ls.cpp main.cpp rshell.cpp ^M
+^M
+../rshell/tests;^M
+ls.script ^M
+^M
+./bin;^M
+ls rshell ^M
+^M
+./src;^M
+ls.cpp main.cpp rshell.cpp ^M
+^M
+./tests;^M
+ls.script ^M
+~/hw1/rshell^M^M
+
+//ls . .. -R comparison test
+jng017@hammer $ ls . .. -R^M
+.:^M
+^[[0m^[[01;34mbin^[[0m/  LICENSE  ls.script2  Makefile  README.md  ^[[01;34msrc^[[0m/  ^[[01;34mtests^[[0m/^M
+^M
+./bin:^M
+^[[01;32mls^[[0m*  ^[[01;32mrshell^[[0m*^M
+^M
+./src:^M
+ls.cpp  main.cpp  rshell.cpp^M
+^M
+./tests:^M
+ls.script^M
+^M
+..:^M
+^[[01;34mrshell^[[0m/^M
+^M
+../rshell:^M
+^[[01;34mbin^[[0m/  LICENSE  ls.script2  Makefile  README.md  ^[[01;34msrc^[[0m/  ^[[01;34mtests^[[0m/^M
+^M
+../rshell/bin:^M
+^[[01;32mls^[[0m*  ^[[01;32mrshell^[[0m*^M
+^M
+../rshell/src:^M
+ls.cpp  main.cpp  rshell.cpp^M
+^M
+../rshell/tests:^M
+ls.script^M
+^[[m~/hw1/rshell^M^M
+jng017@hammer $ exit^M
+exit^M
 
 Script done on Sun 08 Feb 2015 06:36:54 PM PST

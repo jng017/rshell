@@ -890,25 +890,34 @@ int main(int argc, char* argv[])
 	{
 		directories.push_back(".");
 	}
-	for(unsigned i = 0; i < directories.size(); ++i)
+	if(rflag)
 	{
-		if (rflag|| directories.size() > 1)
+		for(unsigned i = 0; i < directories.size(); i++)
 		{
-			if(i > 0)
+			list_entries(directories[i], files);
+			if(rflag)
+			{
+				list_recursive(directories[i], directories, files);
+			}
+			files.clear();
+		}
+		sort_files(directories);
+	}
+	for(unsigned k = 0; k < directories.size(); k++)
+	{
+		if(rflag || directories.size() > 1)
+		{
+			if(k > 0)
 			{
 				cout << endl;
 			}
-			cout << directories[i] << ":" << endl;
+			cout << directories[k] << ";" << endl;
 		}
-		list_entries(directories[i], files);
-		if(rflag)
-		{
-			list_recursive(directories[i], directories, files);
-		}
+		list_entries(directories[k], files);
+		sort_files(files);
 		if(lflag)
 		{
-			sort_files(files);
-			list_long(files, directories[i]);
+			list_long(files, directories[k]);
 		}
 		if(!lflag)
 		{
