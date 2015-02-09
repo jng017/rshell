@@ -1,5 +1,6 @@
 all: | bin
 	g++ -Wall -Werror -ansi -pedantic -o bin/rshell src/main.cpp
+	g++ -Wall -Werror -ansi -pedantic -o bin/ls src/ls.cpp
 
 ls: | bin
 	g++ -Wall -Werror -ansi -pedantic -o bin/ls src/ls.cpp
