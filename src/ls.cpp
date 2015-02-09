@@ -14,6 +14,7 @@
 #include <time.h>
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -106,13 +107,19 @@ void list_entries(string directory, vector<string> &files)
 
 void sort_files(vector<string> &files)
 {
-	string x;
 	for(unsigned i = 0; i < files.size(); i++)
 	{
 		unsigned j = i;
-		while(j > 0 && files[j-1] > files[j])
+		while(j > 0)
 		{
-			swap(files[j], files[j-1]);
+			string temp1 = files[j-1];
+			transform(temp1.begin(), temp1.end(), temp1.begin(), ::tolower);
+			string temp2 = files[j];
+			transform(temp2.begin(), temp2.end(), temp2.begin(), ::tolower);
+			if(temp1 > temp2)
+			{
+				swap(files[j], files[j-1]);
+			}
 			j = j -1;
 		}
 	}
@@ -885,13 +892,14 @@ int main(int argc, char* argv[])
 		{
 			list_recursive(directories[i], directories, files);
 		}
-		sort_files(files);
 		if(lflag)
 		{
+			sort_files(files);
 			list_long(files, directories[i]);
 		}
 		if(!lflag)
 		{
+			sort_files(files);
 			for(unsigned j = 0; j < files.size(); j++)
 			{
 				cout << files[j] << " ";
