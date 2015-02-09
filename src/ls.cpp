@@ -21,30 +21,24 @@ bool aflag = false;
 bool lflag = false;
 bool rflag = false;
 
-void  parseinput(vector<string> &directories)
+void  parseinput(int argc, char* argv[], vector<string> &directories)
 {
 	//Accepts multiple directories for output. Accepts multiple components to flag.
-	string getin = "";
-	getline(cin, getin);
-	char *cstr = new char[getin.length() + 1];
-	strcpy(cstr, getin.c_str());
-	char *token;
-	token = strtok(cstr, " ");
-	while(token!= NULL)
+	for(int i = 1; i < argc; i++)
 	{
-		if(token[0] == '-')
+		char *cstr = argv[i];
+		if(cstr[0] == '-')
 		{
-			if(token[1] == 'a')
+			if(cstr[1] == 'a')
 			{
 				aflag = true;
-				cout << "-a component activated." << endl;
 			}
-			if(token[1] == 'l' || token[2] == 'l')
+			if(cstr[1] == 'l' || cstr[2] == 'l')
 			{
 				lflag = true;
 				cout << "-l component activated." << endl;
 			}
-			if(token[1] == 'R' || token[2] == 'R')
+			if(cstr[1] == 'R' || cstr[2] == 'R')
 			{
 				rflag = true;
 				cout << "-R component activated." << endl;
@@ -53,11 +47,9 @@ void  parseinput(vector<string> &directories)
 		else
 		{
 			//cout << token << " " << endl;
-			directories.push_back(token);
+			directories.push_back(cstr);
 		}
-		token = strtok(NULL, " ");
 	}
-	delete [] cstr;
 }
 
 //Performs directory listing of all sub-directories from within destination. Place in function
@@ -866,14 +858,18 @@ void list_recursive(string directory, vector<string> &directories, vector<string
 	}	
 }
 
-int main()
+int main(int argc, char* argv[])
 {
 	//Construct char array to work with parsing options, then parse the line, opening the
 	//directory as well as applying any modifiers to values to set certain parameters
 	//to the function for it to work.
 	vector<string> directories;
 	vector<string> files;
-	parseinput(directories);
+	parseinput(argc, argv, directories);
+	if(directories.empty())
+	{
+		directories.push_back(".");
+	}
 	for(unsigned i = 0; i < directories.size(); ++i)
 	{
 		if (rflag|| directories.size() > 1)
