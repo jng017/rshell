@@ -124,6 +124,10 @@ void andor_case(vector<string> tempvect, int andpos, char* readcommands[], bool 
 	}
 }
 
+void inputredir(vector<string> tempvect, int inputpos, char* readcommands)
+{
+	
+}
 
 void pre_process(vector<string> tempvect)
 {
@@ -156,6 +160,12 @@ void pre_process(vector<string> tempvect)
 			andor_case(tempvect, i+1, readcommands, false, true);
 			break;
 		}
+//		if(tempvect[i] == "<")
+//		{
+//			noconnectorflag = true;
+//			inputredir(tempvect, i+1, readcommands);
+//			break;
+//		}
 		else
 		{
 			readcommands[i] = const_cast<char*>(tempvect[i].c_str());
@@ -189,7 +199,6 @@ void processinput(vector<string> &commandinput, vector<unsigned> linemarker)
 		}
 		argcount += temp;
 		pre_process(tempvect);
-		cout << endl;
 	}
 	delete [] cstr;
 }
@@ -203,7 +212,5 @@ int main(int argc, char** argv)
 		cout << "$ ";
 		parseinput(commandinput, linemarker);
 		processinput(commandinput, linemarker);
-		cout << "Exited shell. Good day." << endl;
-		return 0;
 	}
 }
