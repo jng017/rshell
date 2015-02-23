@@ -1,0 +1,48 @@
+Script started on Mon 23 Feb 2015 02:29:39 AM PST
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ make
+g++ -Wall -Werror -ansi -pedantic -o bin/rshell src/main.cpp
+g++ -Wall -Werror -ansi -pedantic -o bin/ls src/ls.cpp
+g++ -Wall -Werror -ansi -pedantic -o bin/cp src/cp.cpp
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ bin/rshell
+$ cat dummy_input
+hello this is pie.
+$ cat < dummy_input
+Found redirection case.
+Detected input redirection. Executing first.
+hello this is pie.
+$ exit
+Exited Shell. Good Day.
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ bin/rshell
+$ ls > output
+Found redirection case.
+Detected output redirection. Executing first.
+$ cat output
+bin
+dummy_input
+dummy_inputoutput
+LICENSE
+list
+Makefile
+output
+output2
+piping
+piping2
+README.md
+src
+tests
+$ cat list
+apples
+pears
+grapes
+bananas
+melons
+$ ls >> list
+Found redirection case.
+Detected output redirection. Executing first.
+Error with opening empty output file.: No such file or directory
+$ exit
+Exited Shell. Good Day.
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ exit
+exit
+
+Script done on Mon 23 Feb 2015 02:30:59 AM PST

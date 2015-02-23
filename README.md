@@ -26,6 +26,10 @@ $ bin/rshell
 #Bugs/Limitations/Issues
 As this is still a project in development, this list will be updated with bugs, issues, and concerns that plague this project from completion.
 ```
-*Unable to handle input redirection efficiently; only seems to work when an executable or command line has already been parsed into the shell. Otherwise, it will hang.
+*If there are special cases(&&, ||, <, etc.), the shell will run into executable errors
+on subsequent callings of functions. The cause of this seems to be how the shell is coded
+to handle arguments after the connector/special case symbol.
+*Unable to handle input redirection efficiently; only seems to work when an executable or
+command line has already been parsed into the shell. Otherwise, it will hang.
 *Piping is not fully implemented yet, and hangs on the 2nd child process.
 ```

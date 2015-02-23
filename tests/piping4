@@ -1,0 +1,46 @@
+Script started on Mon 23 Feb 2015 02:36:16 AM PST
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ make
+g++ -Wall -Werror -ansi -pedantic -o bin/rshell src/main.cpp
+g++ -Wall -Werror -ansi -pedantic -o bin/ls src/ls.cpp
+g++ -Wall -Werror -ansi -pedantic -o bin/cp src/cp.cpp
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ cat list
+apples
+pears
+grapes
+bananas
+melons
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ bin/s[Krshell
+$ ls >> list
+$ exit
+Exited Shell. Good Day.
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ cat list
+apples
+pears
+grapes
+bananas
+melons
+bin
+dummy_input
+dummy_inputoutput
+LICENSE
+list
+Makefile
+output
+output2
+piping
+piping2
+piping3
+piping4
+README.md
+src
+tests
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ bin/rshell
+$ list | sort
+Entered child process #1.
+There was an error in execvp.: No such file or directory
+Entered child process #2.
+^C
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ exit
+exit
+
+Script done on Mon 23 Feb 2015 02:36:56 AM PST
