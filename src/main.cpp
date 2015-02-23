@@ -71,6 +71,57 @@ bool process_command(char *readcommands[])
 	return true;
 }
 
+void andor_case(vector<string> tempvect, int andpos, char* readcommands[], bool andcase, bool orcase)
+{
+	bool commentflag = false;
+	char *andorreadcommands[10000];
+	int temp = 0;
+	for(unsigned i = andpos; i < tempvect.size(); i++)
+	{
+		for(unsigned j = 0; j < tempvect[i].size(); j++)
+		{
+			if(tempvect[i][j] == '#')
+			{
+				commentflag = true;
+				break;
+			}
+		}
+		if(commentflag)
+		{
+			break;
+		}
+		if(tempvect[i] == "&&")
+		{
+			andor_case(tempvect, i+1, andorreadcommands, true, false);
+			break;
+		}
+		if(tempvect[i] == "||")
+		{
+			andor_case(tempvect, i+1, andorreadcommands, false, true);
+			break;
+		}
+		else
+		{
+			andorreadcommands[temp] = const_cast<char*>(tempvect[i].c_str());
+			temp++;
+		}
+	}
+	if(andcase)
+	{
+		if(process_command(readcommands))
+		{
+			process_command(andorreadcommands);
+		}
+	}
+	if(orcase)
+	{
+		if(!process_command(readcommands))
+		{
+			process_command(andorreadcommands);
+		}
+	}
+}
+
 bool process_inputredir(char *readcommands[], char *ioredirreadcommands)
 {
 	int fdsave0;
@@ -176,6 +227,8 @@ bool process_outputredir(char *readcommands[], char *ioredirreadcommands)
 bool process_outputredirappend(char *readcommands[], char *ioredirreadcommands)
 {
 	cerr << "Detected output redirection. Executing first." << endl;
+	int fdsave1;
+	int fdoutput;
 	int pid = fork();
 	if(pid <= -1)
 	{
@@ -184,10 +237,35 @@ bool process_outputredirappend(char *readcommands[], char *ioredirreadcommands)
 	}
 	else if(pid == 0)
 	{
+		if(-1 == (fdsave1 = dup(1)))
+		{
+			perror("There was an error with dup, output general case.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == (fdoutput = open(ioredirreadcommands, O_WRONLY | O_APPEND)))
+		{
+			perror("Error with opening empty output file.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == (dup2(fdoutput, 1)))
+		{
+			perror("There was an error with dup2.");
+			exit(EXIT_SUCCESS);
+		}
 		if(-1 == execvp(readcommands[0], readcommands))
 		{
 			perror("There was an error running execvp.");
 			return false;
+		}
+		if(-1 == (dup2(fdsave1, 1)))
+		{
+			perror("There was an error with dup2.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == close(fdoutput))
+		{
+			perror("Error closing output file.");
+			exit(EXIT_SUCCESS);
 		}
 		return true;
 	}
@@ -199,101 +277,7 @@ bool process_outputredirappend(char *readcommands[], char *ioredirreadcommands)
 			return false;
 		}
 	}
-	cerr << "Execution successful. Outputting to file designated." << endl;
-	int fdsave1;
-	int fdoutput;
-	if(-1 == (fdsave1 = dup(1)))
-	{
-			perror("There was an error with dup, output general case.");
-			exit(EXIT_SUCCESS);
-	}
-	if(-1 == (fdoutput = open(ioredirreadcommands, O_APPEND | O_RDWR, S_IRUSR, S_IWUSR)))
-	{
-		perror("Error with opening existing output file.");
-		exit(EXIT_SUCCESS);
-	}
-	int size;
-	char c[BUFSIZ];
-	if(-1 == (size = read(1, c, sizeof(c))))
-	{
-		perror("Error with reading output to temp array.");
-		exit(EXIT_SUCCESS);
-	}
-	while(size != 0)
-	{
-		if(-1 == write(fdoutput, c, size))
-		{
-			perror("Error with writing to output file.");
-			exit(EXIT_SUCCESS);
-		}
-		if(-1 == (size = read(1, c, sizeof(c))))
-		{
-			perror("Error with reading output to temp array.");
-			exit(EXIT_SUCCESS);
-		}
-	}
-	if(-1 == close(fdoutput))
-	{
-		perror("Error closing output file.");
-		exit(EXIT_SUCCESS);
-	}
-	if(-1 == (dup2(fdsave1, 1)))
-	{
-		perror("There was an error with dup2.");
-		exit(EXIT_SUCCESS);
-	}
 	return true;
-}
-
-void andor_case(vector<string> tempvect, int andpos, char* readcommands[], bool andcase, bool orcase)
-{
-	bool commentflag = false;
-	char *andorreadcommands[10000];
-	int temp = 0;
-	for(unsigned i = andpos; i < tempvect.size(); i++)
-	{
-		for(unsigned j = 0; j < tempvect[i].size(); j++)
-		{
-			if(tempvect[i][j] == '#')
-			{
-				commentflag = true;
-				break;
-			}
-		}
-		if(commentflag)
-		{
-			break;
-		}
-		if(tempvect[i] == "&&")
-		{
-			andor_case(tempvect, i+1, andorreadcommands, true, false);
-			break;
-		}
-		if(tempvect[i] == "||")
-		{
-			andor_case(tempvect, i+1, andorreadcommands, false, true);
-			break;
-		}
-		else
-		{
-			andorreadcommands[temp] = const_cast<char*>(tempvect[i].c_str());
-			temp++;
-		}
-	}
-	if(andcase)
-	{
-		if(process_command(readcommands))
-		{
-			process_command(andorreadcommands);
-		}
-	}
-	if(orcase)
-	{
-		if(!process_command(readcommands))
-		{
-			process_command(andorreadcommands);
-		}
-	}
 }
 
 void ioredircase(vector<string> tempvect, unsigned pos, char* readcommands[], bool inputredirflag, bool outputredirflag, bool appendoutputredirflag, bool pipeflag)
@@ -334,14 +318,11 @@ void ioredircase(vector<string> tempvect, unsigned pos, char* readcommands[], bo
 		if(process_outputredir(readcommands, ioredirreadcommands))
 		{
 		}
+	}
 	if(appendoutputredirflag)
 	{
 		if(process_outputredirappend(readcommands, ioredirreadcommands))
 		{
-		}
-		
-			
-			
 		}
 	}
 	if(pipeflag)

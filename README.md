@@ -9,15 +9,16 @@ Printing via command prompt.
 Performing executables with argumentList functionality.
 Connectors(&&, ||, ;) can be used freely within the code to execute multiple commands.
 Displays various error messages of executables that fail to execute.
+Handle general redirection around the shell(<, >, >>, |).
 Exit the shell by typing 'exit'.
 ```
 
 #Installation Guide
-Follow these steps on a shell of your own:
+Follow these steps on a shell of your own to open rshell:
 ```
 $ git clone  http://github.com/yourusername/rshell.git
 $ cd rshell
-$ git checkout hw0
+$ git checkout hw2
 $ make
 $ bin/rshell
 ```
@@ -25,7 +26,6 @@ $ bin/rshell
 #Bugs/Limitations/Issues
 As this is still a project in development, this list will be updated with bugs, issues, and concerns that plague this project from completion.
 ```
-*Unable to parse more than 2 connectors in a single command prompt.
-*Unable to comprehend a combination of && and || connectors in a single command prompt.
-*The code suffers from an extensive algorithm that, at best, only works for 1 occurence of connectors per line or ; connector parse.
+*Unable to handle input redirection efficiently; only seems to work when an executable or command line has already been parsed into the shell. Otherwise, it will hang.
+*Piping is not fully implemented yet.
 ```
