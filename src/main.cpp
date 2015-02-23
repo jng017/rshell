@@ -280,9 +280,106 @@ bool process_outputredirappend(char *readcommands[], char *ioredirreadcommands)
 	return true;
 }
 
+bool process_pipe(char *readcommands[], char *ioredirreadcommandspipe[])
+{
+	const int PIPE_READ = 0;
+	const int PIPE_WRITE = 1;
+	int fd[2];
+	int fdsave0;
+	if(-1 == pipe(fd))
+	{
+		perror("There was an error with creating a pipe.");
+		exit(EXIT_SUCCESS);
+	}
+
+	int pid = fork();
+	if(pid == -1)
+	{
+		perror("There was an error with fork.");
+		exit(EXIT_SUCCESS);
+	}
+	else if(pid == 0)
+	{
+		cout << "Entered child process #1." << endl;
+		if(-1 == (dup2(fd[PIPE_WRITE], 1)))
+		{
+			perror("There was an error when setting the pipe's write end.");
+		}
+		if(-1 == close(fd[PIPE_READ]))
+		{
+			perror("There was an error when closing the pipe's read end.");
+		}
+		if(-1 == execvp(readcommands[0], readcommands))
+		{
+			perror("There was an error in execvp.");
+			exit(EXIT_SUCCESS);
+			return false;
+		}
+		return true;
+	}
+	else if(pid > 0)
+	{
+		if(-1 == (fdsave0 = dup(0)))
+		{
+			perror("There was an error with dup.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == wait(0))
+		{
+			perror("There was an error with wait.");
+			return false;
+		}
+
+		int pid2 = fork();
+		if(pid2 == -1)
+		{
+			perror("There was an error with fork.");
+			exit(EXIT_SUCCESS);
+		}
+		else if(pid2 == 0)
+		{
+			cout << "Entered child process #2." << endl;
+			if(-1 == dup2(fd[PIPE_READ], 0))
+			{
+				perror("There was an error with dup2.");
+				exit(EXIT_SUCCESS);
+			}
+			if(-1 == close(fd[PIPE_WRITE]))
+			{
+				perror("There was an error closing the pipe's write end.");
+				exit(EXIT_SUCCESS);
+			}
+
+			if(-1 == execvp(ioredirreadcommandspipe[0], ioredirreadcommandspipe))
+			{
+				perror("There was an error with execvp.");
+				return false;
+			}
+			cerr << "I hit this point." << endl;
+			return true;
+		}
+		else if(pid2 > 0)
+		{
+			if(-1 == wait(0))
+			{
+				perror("There was an error with wait.");
+				return false;
+			}
+		}
+	}
+	if(-1 == (dup2(fdsave0, 0)))
+	{
+		perror("There was an error with dup2.");
+		exit(EXIT_SUCCESS);
+	}
+	return true;
+}
+
 void ioredircase(vector<string> tempvect, unsigned pos, char* readcommands[], bool inputredirflag, bool outputredirflag, bool appendoutputredirflag, bool pipeflag)
 {
 	cerr << "Found redirection case." << endl;
+	char *ioredirreadcommandspipe[10000];
+	int temp = 0;
 	char ioredirreadcommands[10000];
 	for(unsigned i = pos; i < tempvect.size(); i++)
 	{
@@ -301,6 +398,11 @@ void ioredircase(vector<string> tempvect, unsigned pos, char* readcommands[], bo
 		if(tempvect[i] == "|")
 		{
 			ioredircase(tempvect, i+1, readcommands, false, false, false, true);
+		}
+		if(pipeflag)
+		{
+			ioredirreadcommandspipe[temp] = const_cast<char*>(tempvect[i].c_str());
+			temp++;
 		}
 		else
 		{
@@ -327,7 +429,9 @@ void ioredircase(vector<string> tempvect, unsigned pos, char* readcommands[], bo
 	}
 	if(pipeflag)
 	{
-//		fdsave2 = 5;
+		if(process_pipe(readcommands, ioredirreadcommandspipe))
+		{
+		}
 	}
 
 }

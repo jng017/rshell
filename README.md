@@ -27,5 +27,5 @@ $ bin/rshell
 As this is still a project in development, this list will be updated with bugs, issues, and concerns that plague this project from completion.
 ```
 *Unable to handle input redirection efficiently; only seems to work when an executable or command line has already been parsed into the shell. Otherwise, it will hang.
-*Piping is not fully implemented yet.
+*Piping is not fully implemented yet, and hangs on the 2nd child process.
 ```
