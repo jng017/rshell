@@ -7,12 +7,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 
 using namespace std;
-
 bool exitbool = false;
-
 void parseinput(vector<string> &commandinput, vector<unsigned> &linemarker)
 {
 	string userinput;
@@ -38,8 +38,6 @@ void parseinput(vector<string> &commandinput, vector<unsigned> &linemarker)
 	}
 	delete []cstr;
 }
-
-
 bool process_command(char *readcommands[])
 {
 	int pid = fork();
@@ -69,14 +67,11 @@ bool process_command(char *readcommands[])
 		}
 	}
 	return true;
-
 }
-
-
 void andor_case(vector<string> tempvect, int andpos, char* readcommands[], bool andcase, bool orcase)
 {
 	bool commentflag = false;
-	char *andorreadcommands[1000];
+	char *andorreadcommands[75];
 	int temp = 0;
 	for(unsigned i = andpos; i < tempvect.size(); i++)
 	{
@@ -123,18 +118,14 @@ void andor_case(vector<string> tempvect, int andpos, char* readcommands[], bool 
 		}
 	}
 }
-
 void inputredir(vector<string> tempvect, int inputpos, char* readcommands)
 {
-	
 }
-
 void pre_process(vector<string> tempvect)
 {
 	bool commentflag = false;
 	bool noconnectorflag = false;
-
-	char *readcommands[1000];
+	char *readcommands[75];
 	for(unsigned i = 0; i < tempvect.size(); i++)
 	{
 		for(unsigned j = 0; j < tempvect[i].size(); j++)
@@ -160,12 +151,6 @@ void pre_process(vector<string> tempvect)
 			andor_case(tempvect, i+1, readcommands, false, true);
 			break;
 		}
-//		if(tempvect[i] == "<")
-//		{
-//			noconnectorflag = true;
-//			inputredir(tempvect, i+1, readcommands);
-//			break;
-//		}
 		else
 		{
 			readcommands[i] = const_cast<char*>(tempvect[i].c_str());
@@ -180,8 +165,7 @@ void pre_process(vector<string> tempvect)
 void processinput(vector<string> &commandinput, vector<unsigned> linemarker)
 {
 	int argcount = 0;
-	int temp = 0;	
-	char *cstr = new char[1000];
+	int temp = 0;
 	for(unsigned i = 0; i < linemarker.size(); i++)
 	{
 		vector<string> tempvect;
@@ -200,7 +184,6 @@ void processinput(vector<string> &commandinput, vector<unsigned> linemarker)
 		argcount += temp;
 		pre_process(tempvect);
 	}
-	delete [] cstr;
 }
 
 int main(int argc, char** argv)
