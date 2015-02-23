@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/wait.h>
@@ -68,9 +69,181 @@ bool process_command(char *readcommands[])
 		}
 	}
 	return true;
-
 }
 
+bool process_inputredir(char *readcommands[], char *ioredirreadcommands)
+{
+	int fdsave0;
+	cerr << "Detected input redirection. Executing first." << endl;
+	int pid = fork();
+	if(pid <= -1)
+	{
+		perror("Fork error.");
+		return false;
+	}
+	else if(pid == 0)
+	{
+		if(-1 == (fdsave0 = dup(0)))
+		{
+			perror("There was an error with dup, input pass-in case.");
+			exit(EXIT_SUCCESS);
+		}	
+		if(-1 == execvp(readcommands[0], readcommands))
+		{
+			perror("There was an error running execvp.");
+			return false;
+		}
+		if(-1 == write(0, ioredirreadcommands, 10000))
+		{
+			perror("There was an error with writing.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == (dup2(fdsave0, 0)))
+		{
+			perror("There was an error with dup2.");
+			exit(EXIT_SUCCESS);
+		}
+		return true;
+	}
+	else if(pid > 0)
+	{
+		if(-1 == wait(0))
+		{
+			perror("There was an error with wait. ");
+			return false;
+		}
+	}	
+	return true;
+}
+
+bool process_outputredir(char *readcommands[], char *ioredirreadcommands)
+{
+	int fdsave1;
+	int fdoutput;
+	cerr << "Detected output redirection. Executing first." << endl;
+	int pid = fork();
+	if(pid <= -1)
+	{
+		perror("Fork error.");
+		return false;
+	}
+	else if(pid == 0)
+	{
+		if(-1 == (fdsave1 = dup(1)))
+		{
+			perror("There was an error with dup, output general case.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == (fdoutput = open(ioredirreadcommands, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)))
+		{
+			perror("Error with opening empty output file.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == (dup2(fdoutput, 1)))
+		{
+			perror("There was an error with dup2.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == execvp(readcommands[0], readcommands))
+		{
+			perror("There was an error running execvp.");
+			return false;
+		}
+		if(-1 == (dup2(fdsave1, 1)))
+		{
+			perror("There was an error with dup2.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == close(fdoutput))
+		{
+			perror("Error closing output file.");
+			exit(EXIT_SUCCESS);
+		}
+		
+		return true;
+	}
+	else if(pid > 0)
+	{
+		if(-1 == wait(0))
+		{
+			perror("There was an error with wait. ");
+			return false;
+		}
+	}
+	return true;
+}
+
+bool process_outputredirappend(char *readcommands[], char *ioredirreadcommands)
+{
+	cerr << "Detected output redirection. Executing first." << endl;
+	int pid = fork();
+	if(pid <= -1)
+	{
+		perror("Fork error.");
+		return false;
+	}
+	else if(pid == 0)
+	{
+		if(-1 == execvp(readcommands[0], readcommands))
+		{
+			perror("There was an error running execvp.");
+			return false;
+		}
+		return true;
+	}
+	else if(pid > 0)
+	{
+		if(-1 == wait(0))
+		{
+			perror("There was an error with wait. ");
+			return false;
+		}
+	}
+	cerr << "Execution successful. Outputting to file designated." << endl;
+	int fdsave1;
+	int fdoutput;
+	if(-1 == (fdsave1 = dup(1)))
+	{
+			perror("There was an error with dup, output general case.");
+			exit(EXIT_SUCCESS);
+	}
+	if(-1 == (fdoutput = open(ioredirreadcommands, O_APPEND | O_RDWR, S_IRUSR, S_IWUSR)))
+	{
+		perror("Error with opening existing output file.");
+		exit(EXIT_SUCCESS);
+	}
+	int size;
+	char c[BUFSIZ];
+	if(-1 == (size = read(1, c, sizeof(c))))
+	{
+		perror("Error with reading output to temp array.");
+		exit(EXIT_SUCCESS);
+	}
+	while(size != 0)
+	{
+		if(-1 == write(fdoutput, c, size))
+		{
+			perror("Error with writing to output file.");
+			exit(EXIT_SUCCESS);
+		}
+		if(-1 == (size = read(1, c, sizeof(c))))
+		{
+			perror("Error with reading output to temp array.");
+			exit(EXIT_SUCCESS);
+		}
+	}
+	if(-1 == close(fdoutput))
+	{
+		perror("Error closing output file.");
+		exit(EXIT_SUCCESS);
+	}
+	if(-1 == (dup2(fdsave1, 1)))
+	{
+		perror("There was an error with dup2.");
+		exit(EXIT_SUCCESS);
+	}
+	return true;
+}
 
 void andor_case(vector<string> tempvect, int andpos, char* readcommands[], bool andcase, bool orcase)
 {
@@ -152,94 +325,30 @@ void ioredircase(vector<string> tempvect, unsigned pos, char* readcommands[], bo
 	}
 	if(inputredirflag)
 	{
-		cerr << "Detected input redirection. Executing first." << endl;
-		if(process_command(readcommands))
+		if(process_inputredir(readcommands, ioredirreadcommands))
 		{
-			cerr << "Execution successful. Passing in the input." << endl;
-			int fdsave;
-			if(-1 == (fdsave = dup(0)))
-			{
-				perror("There was an error with dup.");
-				exit(EXIT_SUCCESS);
-			}
-			if(-1 == write(0, ioredirreadcommands, 10000))
-			{
-				perror("There was an error with writing.");
-				exit(EXIT_SUCCESS);
-			}
-			if(-1 == (dup2(fdsave, 0)))
-			{
-				perror("There was an error with dup2.");
-				exit(EXIT_SUCCESS);
-			}
 		}
 	}
 	if(outputredirflag)
 	{
-
-	}
+		if(process_outputredir(readcommands, ioredirreadcommands))
+		{
+		}
 	if(appendoutputredirflag)
 	{
-
+		if(process_outputredirappend(readcommands, ioredirreadcommands))
+		{
+		}
+		
+			
+			
+		}
 	}
 	if(pipeflag)
 	{
-
+//		fdsave2 = 5;
 	}
 
-}
-
-bool ioredir(vector<string> tempvect, unsigned inputpos, char* readcommands[], bool inputredir, bool outputredir)
-{
-	cerr << "Entering ioredir function. " << endl;
-	int pid = fork();
-	if(pid <= -1)
-	{
-		perror("Fork error.");
-		return false;
-	}
-	else if(pid == 0)
-	{
-		cerr << "Entering child process." << endl;
-		if(-1 == execvp(readcommands[0], readcommands))
-		{
-			perror("There was an error running execvp.");
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
-	else if(pid > 0)
-	{
-		if(-1 == wait(0))
-		{
-			perror("There was an error with wait. ");
-			return false;
-		}
-	}
-	if(inputredir)
-	{
-		cerr << "Entering input redirection." << endl;
-		int fdsave;
-		if(-1 == (fdsave = dup(0)))
-		{
-			perror("There was an error with dup.");
-			return false;
-		}
-		if(-1 == write(0, tempvect[inputpos].c_str(), tempvect[inputpos].size()))
-		{
-			perror("There was an error with writing.");
-			return false;
-		}
-		if(-1 == (dup2(fdsave, 0)))
-		{
-			perror("There was an error with dup2.");
-			return false;
-		}
-	}
-	return true;
 }
 
 void pre_process(vector<string> tempvect)
@@ -275,19 +384,27 @@ void pre_process(vector<string> tempvect)
 		}
 		if(tempvect[i] == "<")
 		{
+			noconnectorflag = true;
 			ioredircase(tempvect, i+1, readcommands, true, false, false, false);
+			break;
 		}
 		if(tempvect[i] == ">")
 		{
+			noconnectorflag = true;
 			ioredircase(tempvect, i+1, readcommands, false, true, false, false);
+			break;
 		}
 		if(tempvect[i] == ">>")
 		{
+			noconnectorflag = true;
 			ioredircase(tempvect, i+1, readcommands, false, false, true, false);
+			break;
 		}
 		if(tempvect[i] == "|")
 		{
+			noconnectorflag = true;
 			ioredircase(tempvect, i+1, readcommands, false, false, false, true);
+			break;
 		}
 		else
 		{
