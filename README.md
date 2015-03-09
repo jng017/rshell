@@ -16,7 +16,7 @@ Exit the shell by typing 'exit'.
 #Installation Guide
 Follow these steps on a shell of your own to open rshell:
 ```
-$ git clone  http://github.com/yourusername/rshell.git
+$ git clone  http://github.com/jng017/rshell.git
 $ cd rshell
 $ git checkout hw3
 $ make
