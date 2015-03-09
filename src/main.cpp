@@ -10,11 +10,25 @@
 #include <sys/uio.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/mman.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 using namespace std;
 
 bool exitbool = false;
+
+void handler(int i)
+{
+	if(i==SIGINT)
+	{
+		//cout << "Returned to shell" << endl;	
+	}
+	//if(i==SIGTSTP)
+	//{
+	//	cerr << " Not pausing rshell," << endl;
+	//}
+}
 
 void parseinput(vector<string> &commandinput, vector<unsigned> &linemarker)
 {
@@ -42,406 +56,275 @@ void parseinput(vector<string> &commandinput, vector<unsigned> &linemarker)
 	delete []cstr;
 }
 
-
-bool process_command(char *readcommands[])
+bool change_dir(char *dir)
 {
+	//cout << "Changing directory to: " << readdirectory << endl;
+	if(-1 == chdir(dir))
+	{
+		perror("There was an error with chdir(). ");
+		return false;
+	}
+	setenv("PWD", getcwd(NULL, 0), 1);
+	return true; //Successfully changed dir.
+}
+
+vector<string> possible_dir(char *exec)
+{
+	char *r = getenv("PATH");
+	char *t = new char[strlen(r) + 1];
+	strcpy(t, r);
+	vector<string> tempvctr;
+	//cerr << t << endl;
+	char *token, *save_1;
+	token = strtok_r(t, ":", &save_1);
+	while(token != NULL)
+	{
+		string tempstr = token;
+		if(exec[0] != '/')
+		{
+			tempstr += "/";
+		}
+		tempstr += exec;
+		tempvctr.push_back(tempstr);
+		token = strtok_r(NULL, ":", &save_1);
+	}
+	//for(unsigned i = 0; i < tempvctr.size(); i++)
+	//{
+	//	cerr << tempvctr[i] << endl;
+	//}
+	delete []t;
+	return tempvctr;
+}
+
+//Use execv, the first argument is the filename + its path(will have to append to this then), and then the second argument should be the arguments that follow. Maybe strcat within htis function to readcommands[0]?
+bool process_command(vector<string> snippet, int type, char *ioarg, int anyfd)
+{
+	bool ret = true;
+	char **readcommands = new char*[snippet.size()];
+	for(unsigned a = 0; a < snippet.size(); a++)
+	{
+		readcommands[a] = const_cast<char*>(snippet[a].c_str());
+	}
+	vector<string> paths = possible_dir(readcommands[0]);
+
 	int pid = fork();
-	if(pid <= -1)
+	int fd = -1;
+	int fdsave = -1;
+//	int pipefd[2];
+//	pipe(pipefd);
+		if(pid <= -1)
 	{
 		perror("Fork error.");
-		return false;
+		_exit(EXIT_FAILURE);
 	}
 	else if(pid == 0)
 	{
-		if(-1 == execvp(readcommands[0], readcommands))
+		signal(SIGINT, SIG_DFL);
+		signal(SIGTSTP, SIG_DFL);
+		bool execvpassed = false;
+		
+		if(type == 0 || type == 1 || type == 2)
 		{
-			perror("There was an error running execvp.");
-			return false;
-		}
-		return true;
-	}
-	else if(pid > 0)
-	{
-		if(-1 == wait(0))
-		{
-			perror("There was an error with wait. ");
-			return false;
-		}
-	}
-	return true;
-}
-
-void andor_case(vector<string> tempvect, int andpos, char* readcommands[], bool andcase, bool orcase)
-{
-	bool commentflag = false;
-	char *andorreadcommands[10000];
-	int temp = 0;
-	for(unsigned i = andpos; i < tempvect.size(); i++)
-	{
-		for(unsigned j = 0; j < tempvect[i].size(); j++)
-		{
-			if(tempvect[i][j] == '#')
+			if(type == 0)
 			{
-				commentflag = true;
-				break;
+				if(-1 == (fd = open(ioarg, O_CREAT|O_RDWR, S_IREAD|S_IWRITE)))
+				{
+					perror("There was an error with open() for <. ");
+				}
 			}
-		}
-		if(commentflag)
-		{
-			break;
-		}
-		if(tempvect[i] == "&&")
-		{
-			andor_case(tempvect, i+1, andorreadcommands, true, false);
-			break;
-		}
-		if(tempvect[i] == "||")
-		{
-			andor_case(tempvect, i+1, andorreadcommands, false, true);
-			break;
-		}
-		else
-		{
-			andorreadcommands[temp] = const_cast<char*>(tempvect[i].c_str());
-			temp++;
-		}
-	}
-	if(andcase)
-	{
-		if(process_command(readcommands))
-		{
-			process_command(andorreadcommands);
-		}
-	}
-	if(orcase)
-	{
-		if(!process_command(readcommands))
-		{
-			process_command(andorreadcommands);
-		}
-	}
-}
-
-bool process_inputredir(char *readcommands[], char *ioredirreadcommands)
-{
-	int fdsave0;
-	cerr << "Detected input redirection. Executing first." << endl;
-	int pid = fork();
-	if(pid <= -1)
-	{
-		perror("Fork error.");
-		return false;
-	}
-	else if(pid == 0)
-	{
-		if(-1 == (fdsave0 = dup(0)))
-		{
-			perror("There was an error with dup, input pass-in case.");
-			exit(EXIT_SUCCESS);
-		}	
-		if(-1 == execvp(readcommands[0], readcommands))
-		{
-			perror("There was an error running execvp.");
-			return false;
-		}
-		if(-1 == write(0, ioredirreadcommands, 10000))
-		{
-			perror("There was an error with writing.");
-			exit(EXIT_SUCCESS);
-		}
-		if(-1 == (dup2(fdsave0, 0)))
-		{
-			perror("There was an error with dup2.");
-			exit(EXIT_SUCCESS);
-		}
-		return true;
-	}
-	else if(pid > 0)
-	{
-		if(-1 == wait(0))
-		{
-			perror("There was an error with wait. ");
-			return false;
-		}
-	}	
-	return true;
-}
-
-bool process_outputredir(char *readcommands[], char *ioredirreadcommands)
-{
-	int fdsave1;
-	int fdoutput;
-	cerr << "Detected output redirection. Executing first." << endl;
-	int pid = fork();
-	if(pid <= -1)
-	{
-		perror("Fork error.");
-		return false;
-	}
-	else if(pid == 0)
-	{
-		if(-1 == (fdsave1 = dup(1)))
-		{
-			perror("There was an error with dup, output general case.");
-			exit(EXIT_SUCCESS);
-		}
-		if(-1 == (fdoutput = open(ioredirreadcommands, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)))
-		{
-			perror("Error with opening empty output file.");
-			exit(EXIT_SUCCESS);
-		}
-		if(-1 == (dup2(fdoutput, 1)))
-		{
-			perror("There was an error with dup2.");
-			exit(EXIT_SUCCESS);
-		}
-		if(-1 == execvp(readcommands[0], readcommands))
-		{
-			perror("There was an error running execvp.");
-			return false;
-		}
-		if(-1 == (dup2(fdsave1, 1)))
-		{
-			perror("There was an error with dup2.");
-			exit(EXIT_SUCCESS);
-		}
-		if(-1 == close(fdoutput))
-		{
-			perror("Error closing output file.");
-			exit(EXIT_SUCCESS);
+			if(type == 1)
+			{
+				if(-1 == (fd = open(ioarg, O_CREAT | O_RDWR, S_IREAD | S_IWRITE)))
+				{
+					perror("There was an error with open() for >. ");
+				}
+			}
+			if(type == 2)
+			{
+				if(-1 == (fd = open(ioarg, O_APPEND | O_RDWR, S_IREAD | S_IWRITE)))
+				{
+					perror("There was an error with open() for >>. ");
+				}
+				type--;
+			}
+			fdsave = dup(type);
+			if(-1 == dup2(fd, anyfd))
+			{
+				perror("There was an error with dup2(). ");
+			}
+			if(-1 == close(fd))
+			{
+				perror("There was an error with close(). ");
+			}
 		}
 		
-		return true;
+
+		for(unsigned i = 0; i < paths.size(); i++)
+		{
+			readcommands[0] = const_cast<char*>(paths[i].c_str());
+			if(-1 != execv(readcommands[0], readcommands))
+			{	
+				execvpassed = true;
+			}
+		}
+		if(!execvpassed)
+		{
+			perror("There was an error with execv(). ");
+			_exit(EXIT_FAILURE);
+		}
+
+		if(type == 0 || type == 1 || type == 2)
+		{
+			if(-1 == dup2(fdsave, type))
+			{
+				perror("There was an error with dup2() on exit. ");
+			}
+		}
 	}
 	else if(pid > 0)
 	{
-		if(-1 == wait(0))
+		int status;
+		if(-1 == waitpid(-1, &status, 0))
 		{
-			perror("There was an error with wait. ");
-			return false;
+			perror("There was an error with wait(). ");
+			_exit(EXIT_FAILURE);
+		}
+		if(WEXITSTATUS(status) != 0)
+		{
+			//cout << "Child did not exit successfully." << endl;
+			ret = false;
 		}
 	}
-	return true;
+	delete[]readcommands;
+	return ret;
 }
 
-bool process_outputredirappend(char *readcommands[], char *ioredirreadcommands)
+void process_pipe(vector<vector<string> > pipeargs)
 {
-	cerr << "Detected output redirection. Executing first." << endl;
-	int fdsave1;
-	int fdoutput;
-	int pid = fork();
-	if(pid <= -1)
+	for(unsigned i = 0; i < pipeargs.size() - 1; i+=1)
 	{
-		perror("Fork error.");
-		return false;
-	}
-	else if(pid == 0)
-	{
-		if(-1 == (fdsave1 = dup(1)))
+		char **pipearg1= new char*[pipeargs[i].size()];
+		char **pipearg2 = new char*[pipeargs[i+1].size()];
+		for(unsigned a = 0; a < pipeargs[i].size(); a++)
 		{
-			perror("There was an error with dup, output general case.");
-			exit(EXIT_SUCCESS);
+			pipearg1[a] = const_cast<char*>(pipeargs[i][a].c_str());
 		}
-		if(-1 == (fdoutput = open(ioredirreadcommands, O_WRONLY | O_APPEND)))
+		for(unsigned b = 0; b < pipeargs[i+1].size(); b++)
 		{
-			perror("Error with opening empty output file.");
-			exit(EXIT_SUCCESS);
+			pipearg2[b] = const_cast<char*>(pipeargs[i+1][b].c_str());
 		}
-		if(-1 == (dup2(fdoutput, 1)))
+		vector<string> paths1 = possible_dir(pipearg1[0]);
+		vector<string> paths2 = possible_dir(pipearg2[0]);
+		int pipefd[2];
+		pipe(pipefd);
+		//cout << "hi" << endl;
+		int pid = fork();
+		if(pid == -1)
 		{
-			perror("There was an error with dup2.");
-			exit(EXIT_SUCCESS);
+			perror("There was an error with fork(). ");
+			_exit(EXIT_FAILURE);
 		}
-		if(-1 == execvp(readcommands[0], readcommands))
+		else if(pid == 0)
 		{
-			perror("There was an error running execvp.");
-			return false;
-		}
-		if(-1 == (dup2(fdsave1, 1)))
-		{
-			perror("There was an error with dup2.");
-			exit(EXIT_SUCCESS);
-		}
-		if(-1 == close(fdoutput))
-		{
-			perror("Error closing output file.");
-			exit(EXIT_SUCCESS);
-		}
-		return true;
-	}
-	else if(pid > 0)
-	{
-		if(-1 == wait(0))
-		{
-			perror("There was an error with wait. ");
-			return false;
-		}
-	}
-	return true;
-}
-
-bool process_pipe(char *readcommands[], char *ioredirreadcommandspipe[])
-{
-	const int PIPE_READ = 0;
-	const int PIPE_WRITE = 1;
-	int fd[2];
-	int fdsave0;
-	if(-1 == pipe(fd))
-	{
-		perror("There was an error with creating a pipe.");
-		exit(EXIT_SUCCESS);
-	}
-
-	int pid = fork();
-	if(pid == -1)
-	{
-		perror("There was an error with fork.");
-		exit(EXIT_SUCCESS);
-	}
-	else if(pid == 0)
-	{
-		cout << "Entered child process #1." << endl;
-		if(-1 == (dup2(fd[PIPE_WRITE], 1)))
-		{
-			perror("There was an error when setting the pipe's write end.");
-		}
-		if(-1 == close(fd[PIPE_READ]))
-		{
-			perror("There was an error when closing the pipe's read end.");
-		}
-		if(-1 == execvp(readcommands[0], readcommands))
-		{
-			perror("There was an error in execvp.");
-			exit(EXIT_SUCCESS);
-			return false;
-		}
-		return true;
-	}
-	else if(pid > 0)
-	{
-		if(-1 == (fdsave0 = dup(0)))
-		{
-			perror("There was an error with dup.");
-			exit(EXIT_SUCCESS);
-		}
-		if(-1 == wait(0))
-		{
-			perror("There was an error with wait.");
-			return false;
-		}
-
-		int pid2 = fork();
-		if(pid2 == -1)
-		{
-			perror("There was an error with fork.");
-			exit(EXIT_SUCCESS);
-		}
-		else if(pid2 == 0)
-		{
-			cout << "Entered child process #2." << endl;
-			if(-1 == dup2(fd[PIPE_READ], 0))
+			signal(SIGINT, SIG_DFL);
+			signal(SIGTSTP, SIG_DFL);
+			bool execvpassed = false;
+			close(pipefd[0]);
+	
+			dup2(pipefd[1], 1);
+				
+			close(pipefd[1]);
+	
+			for(unsigned i = 0; i < paths1.size(); i++)
 			{
-				perror("There was an error with dup2.");
-				exit(EXIT_SUCCESS);
+				pipearg1[0] = const_cast<char*>(paths1[i].c_str());
+				if(-1 != execv(pipearg1[0], pipearg1))
+				{	
+					execvpassed = true;
+				}
 			}
-			if(-1 == close(fd[PIPE_WRITE]))
+			if(!execvpassed)
 			{
-				perror("There was an error closing the pipe's write end.");
-				exit(EXIT_SUCCESS);
+				perror("There was an error with execv(). ");
+				_exit(EXIT_FAILURE);
 			}
 
-			if(-1 == execvp(ioredirreadcommandspipe[0], ioredirreadcommandspipe))
-			{
-				perror("There was an error with execvp.");
-				return false;
-			}
-			cerr << "I hit this point." << endl;
-			return true;
 		}
-		else if(pid2 > 0)
+		int savestdin = -1;
+		if(pid > 0)
 		{
+			if(-1 == (savestdin = dup(0)))
+			{
+				perror("There was an error with dup(). ");
+			}
 			if(-1 == wait(0))
 			{
-				perror("There was an error with wait.");
-				return false;
+				perror("There was an error with wait(). ");
+			}
+
+			int pid2 = fork();
+			if(pid2 == -1)
+			{
+				perror("There was an error with fork(). ");
+				_exit(EXIT_SUCCESS);
+			}
+			else if(pid2 == 0)
+			{
+
+				signal(SIGINT, SIG_DFL);
+				signal(SIGTSTP, SIG_DFL);
+				bool execvpassed = false;
+				if(-1 ==  close(pipefd[1]))
+				{
+					perror("There was an error with close(). ");
+				}
+				if(-1 == dup2(pipefd[0], 0))
+				{
+					perror("There was an error with dup2(). ");
+				}
+				if(-1 == close(pipefd[0]))
+				{
+					perror("There was an error with close(). ");
+				}
+
+				for(unsigned i = 0; i < paths2.size(); i++)
+				{
+					pipearg2[0] = const_cast<char*>(paths2[i].c_str());
+					if(-1 != execv(pipearg2[0], pipearg2))
+					{	
+						execvpassed = true;
+					}
+					if(!execvpassed)
+					{
+						perror("There was an error with execv(). ");
+						_exit(EXIT_FAILURE);
+					}
+				}
+			}
+			else if(pid2 > 0)
+			{
+				if(-1 == wait(0))
+				{
+					perror("There was an error with wait(). ");
+				}
 			}
 		}
-	}
-	if(-1 == (dup2(fdsave0, 0)))
-	{
-		perror("There was an error with dup2.");
-		exit(EXIT_SUCCESS);
-	}
-	return true;
-}
+		if(-1 == dup2(savestdin, 0))
+		{
+			perror("There was an error with dup2(). ");
+		}
+	}	
+}	
 
-void ioredircase(vector<string> tempvect, unsigned pos, char* readcommands[], bool inputredirflag, bool outputredirflag, bool appendoutputredirflag, bool pipeflag)
-{
-	cerr << "Found redirection case." << endl;
-	char *ioredirreadcommandspipe[10000];
-	int temp = 0;
-	char ioredirreadcommands[10000];
-	for(unsigned i = pos; i < tempvect.size(); i++)
-	{
-		if(tempvect[i] == "<")
-		{
-			ioredircase(tempvect, i+1, readcommands, true, false, false, false);	
-		}
-		if(tempvect[i] == ">")
-		{
-			ioredircase(tempvect, i+1, readcommands, false, true, false, false);
-		}
-		if(tempvect[i] == ">>")
-		{
-			ioredircase(tempvect, i+1, readcommands, false, false, true, false);
-		}
-		if(tempvect[i] == "|")
-		{
-			ioredircase(tempvect, i+1, readcommands, false, false, false, true);
-		}
-		if(pipeflag)
-		{
-			ioredirreadcommandspipe[temp] = const_cast<char*>(tempvect[i].c_str());
-			temp++;
-		}
-		else
-		{
-			strcat(ioredirreadcommands, tempvect[i].c_str());
-		}
-	}
-	if(inputredirflag)
-	{
-		if(process_inputredir(readcommands, ioredirreadcommands))
-		{
-		}
-	}
-	if(outputredirflag)
-	{
-		if(process_outputredir(readcommands, ioredirreadcommands))
-		{
-		}
-	}
-	if(appendoutputredirflag)
-	{
-		if(process_outputredirappend(readcommands, ioredirreadcommands))
-		{
-		}
-	}
-	if(pipeflag)
-	{
-		if(process_pipe(readcommands, ioredirreadcommandspipe))
-		{
-		}
-	}
-
-}
-
-void pre_process(vector<string> tempvect)
+bool process_singleline(vector<string> tempvect, int index)
 {
 	bool commentflag = false;
-	bool noconnectorflag = false;
+	bool specialflag = false;
+	bool andcase = false;
+	bool orcase = false;
+	//bool pipeflag = false;
 
-	char *readcommands[10000];
+	vector<string> snippet;
 	for(unsigned i = 0; i < tempvect.size(); i++)
 	{
 		for(unsigned j = 0; j < tempvect[i].size(); j++)
@@ -455,58 +338,187 @@ void pre_process(vector<string> tempvect)
 		{
 			break;
 		}
+		if(tempvect[i] == "exit")
+		{
+			cout << "Found exit" << endl;
+			exitbool = true;
+			return false;
+		}
 		if(tempvect[i] == "&&")
 		{
-			noconnectorflag = true;
-			andor_case(tempvect, i+1, readcommands, true, false);
-			break;
+			//andcase = true;
+			specialflag = true;
+			//cout << "Working on and case for" << endl;
+			//for(unsigned b = 0; b < snippet.size(); b++)
+			//{
+			//	cout << snippet[b] << " ";
+			//}
+			//cout << endl;
+			if(process_command(snippet, -1, NULL, -1))
+			{
+				//cout << "andcase passed" << endl;
+				andcase = true;
+			}
+			snippet.clear();
+			continue;
 		}
 		if(tempvect[i] == "||")
 		{
-			noconnectorflag = true;
-			andor_case(tempvect, i+1, readcommands, false, true);
-			break;
+			//orcase = true;
+			specialflag = true;
+			//cout << "Working on or case for" << endl;
+			//for(unsigned b = 0; b < snippet.size(); b++)
+			//{
+			//	cout << snippet[b] << " ";
+			//}
+			//cout << endl;
+			if(!process_command(snippet, -1, NULL, -1))
+			{
+				//cout << "Or case passed" << endl;
+				orcase = true;
+			}
+			snippet.clear();
+			continue;
 		}
-		if(tempvect[i] == "<")
+		if(tempvect[i] == "<" && tempvect.size() > 1)
 		{
-			noconnectorflag = true;
-			ioredircase(tempvect, i+1, readcommands, true, false, false, false);
-			break;
+			//ioinputcase = true;
+			specialflag = true;
+			//cout << "Entered input redirection phase." << endl;
+			//for(unsigned b = 0; b < snippet.size(); b++)
+			//{
+			//	cout << snippet[b] << " ";
+			//}
+			//cout << tempvect[i+1] << endl;
+			//cout << endl;
+			if(process_command(snippet, 0, const_cast<char*>(tempvect[i+1].c_str()), 0))
+			{
+				
+			}
+			i += 1;
+			//cout << "The string after this: " << tempvect[i];
+			snippet.clear();
+			continue;
 		}
-		if(tempvect[i] == ">")
+		if(tempvect[i] == ">" && tempvect.size() > 1)
 		{
-			noconnectorflag = true;
-			ioredircase(tempvect, i+1, readcommands, false, true, false, false);
-			break;
+			//iooutputcase = true;
+			specialflag = true;
+			cout << "Entered > redirection." << endl;
+			if(process_command(snippet, 1, const_cast<char*>(tempvect[i+1].c_str()), 1))
+			{
+			}
+			i += 1;
+			//cout << "The string after this: " << tempvect[i];
+			snippet.clear();
+			continue;
 		}
-		if(tempvect[i] == ">>")
+		if(tempvect[i] == ">>" && tempvect.size() > 1)
 		{
-			noconnectorflag = true;
-			ioredircase(tempvect, i+1, readcommands, false, false, true, false);
-			break;
+			//iooutputcase2 = true;
+			specialflag = true;
+			//cout << "Entered >> redirection." << endl;
+			if(process_command(snippet, 2, const_cast<char*>(tempvect[i+1].c_str()), 2))
+			{
+			}
+			i += 1;
+			//cout << "The string after this: " << tempvect[i] << endl;
+			snippet.clear();
+			continue;
+		}
+		if(std::string::npos != tempvect[i].find('>', 1) && std::string::npos == tempvect[i].find('>', 2))
+		{
+			specialflag = true;
+			//cout << "Entered any file descriptor > redirection." << endl;
+			if(process_command(snippet, 1, const_cast<char*>(tempvect[i+1].c_str()), tempvect[i][0]))
+			{
+			}
+			i += 1;
+			//cout << "The string after this: " << tempvect[i] << endl;
+			snippet.clear();
+		}
+		if(std::string::npos != tempvect[i].find('>', 1) && std::string::npos != tempvect[i].find('>', 2))
+		{
+			specialflag = true;
+			//cout << "Entered any file descriptor >> redirection." << endl;
+			if(process_command(snippet, 2, const_cast<char*>(tempvect[i+1].c_str()), tempvect[i][0]))
+			{
+			}
+			i += 1;
+			//cout << "The string after this: " << tempvect[i] << endl;
+			snippet.clear();
 		}
 		if(tempvect[i] == "|")
 		{
-			noconnectorflag = true;
-			ioredircase(tempvect, i+1, readcommands, false, false, false, true);
+			//iopipecase = true;1
+			//pipeflag = true;
+			//specialflag = true;
+			//continue;
+		}
+		if(tempvect[i] == "cd" && tempvect.size() > 1)
+		{
+			//cdcase=true
+			specialflag = true;
+			change_dir(const_cast<char*>(tempvect[i+1].c_str()));
 			break;
+		}
+		if(tempvect[i] == "cd" && tempvect.size() == 1)
+		{
+			specialflag = true;
+			tempvect.push_back("/home");
+			change_dir(const_cast<char*>(tempvect[i+1].c_str()));
 		}
 		else
 		{
-			readcommands[i] = const_cast<char*>(tempvect[i].c_str());
+			snippet.push_back(tempvect[i]);
 		}
 	}
-	if(!noconnectorflag)
+	cout << "What's currently in snippet after running through line." << endl;
+	for(unsigned c = 0; c < snippet.size(); c++)
 	{
-		process_command(readcommands);
+		cout << snippet[c] << " ";
 	}
+	//cout << endl;
+	if(andcase)
+	{
+		process_command(snippet, -1, NULL, -1);
+	}
+	if(orcase)
+	{
+		process_command(snippet, -1, NULL, -1);
+	}
+	//if(pipeflag && specialflag)
+	//{
+	//	process_command 
+	//	cout << "Entered | redirection." << endl;
+	//	vector<vector<string> > pipeargs;
+	//	int pipeindex = 0;
+	//	for(unsigned d = 0; d < snippet.size(); d++)
+	//	{
+	//		if(snippet[d] == "|")
+	//		{
+	//			pipeindex++;
+	//		}
+	//		else
+	//		{
+	//			pipeargs[pipeindex].push_back(snippet[d]);
+	//		}
+	//	}
+	//	process_pipe(pipeargs);
+	//}
+	if(!specialflag)
+	{
+		process_command(snippet, -1, NULL, -1);
+	}
+	snippet.clear();
+	return true;
 }
 
-void processinput(vector<string> &commandinput, vector<unsigned> linemarker)
+void processlines(vector<string> &commandinput, vector<unsigned> linemarker)
 {
 	int argcount = 0;
 	int temp = 0;
-	vector<string> tempvect;
+	vector<string> tempvect;;
 	for(unsigned i = 0; i < linemarker.size(); i++)
 	{
 		tempvect.clear();
@@ -517,24 +529,50 @@ void processinput(vector<string> &commandinput, vector<unsigned> linemarker)
 			{
 				exitbool = true;
 				cout << "Exited Shell. Good Day." << endl;
-				exit(EXIT_SUCCESS);
+				raise(SIGINT);
+				exit(0);
+				break;
 			}
-			tempvect.push_back(commandinput[j]);
-			temp++;
+			else
+			{
+				tempvect.push_back(commandinput[j]);
+				temp++;
+			}
 		}
-		argcount += temp;
-		pre_process(tempvect);
+		if(exitbool)
+		{
+			break;
+		}
+		else
+		{
+			argcount += temp;
+			if(!process_singleline(tempvect, 0))
+			{
+				exit(0);
+			}
+		}
 	}
 }
 
 int main(int argc, char** argv)
 {
+	char hostname[120];
+	char *loginname = getlogin();
+	vector<unsigned> linemarker;
+	vector<string> commandinput;
+	gethostname(hostname, sizeof(hostname));
+	if(loginname == NULL)
+	{
+		perror("There was an error obtaining the username with getlogin(). ");
+	}
 	while(!exitbool)
 	{
-		vector<unsigned> linemarker;
-		vector<string> commandinput;
-		cout << "$ ";
+		signal(SIGINT, handler);
+		//signal(SIGTSTP, handler);
+		cout << loginname << "@" << hostname << ":" << getenv("PWD") << "% ";
 		parseinput(commandinput, linemarker);
-		processinput(commandinput, linemarker);
+		processlines(commandinput, linemarker);
+		linemarker.clear();
+		commandinput.clear();
 	}
 }
