@@ -1,0 +1,37 @@
+Script started on Mon 09 Mar 2015 09:11:09 AM PDT
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ make
+g++ -Wall -Werror -ansi -pedantic -o bin/rshell src/main.cpp
+g++ -Wall -Werror -ansi -pedantic -o bin/ls src/ls.cpp
+g++ -Wall -Werror -ansi -pedantic -o bin/cp src/cp.cpp
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ bin/rshell
+
+//Signal ^C override
+/home/jeffrey/cs100/rshell% cat
+
+
+
+//Changing directories
+^C/home/jeffrey/cs100/rshell% cd ../
+/home/jeffrey/cs100% cd rshell
+
+//Testing absolute and relative paths
+/home/jeffrey/cs100/rshell% cd ./usr/bin
+There was an error with chdir(). : No such file or directory
+/home/jeffrey/cs100/rshell% cd . /usr/bin
+/usr/bin% cd
+/home/% cd /home/jeffrey/cs100/rshell
+
+
+//Multiple signals sent and testing execv
+/home/jeffrey/cs100/rshell% cat && cat && cat
+^C^C^C/home/jeffrey/cs100/rshell% ls -a
+.   bin		 dummy_inputoutput  LICENSE  Makefile  output2	  signals   src
+..  dummy_input  .git		    list     output    README.md  signals4  tests
+/home/jeffrey/cs100/rshell% l
+There was an error with execv(). : No such file or directory
+/home/jeffrey/cs100/rshell% exit
+Exited Shell. Good Day.
+]0;jeffrey@jeffrey-N56DP: ~/cs100/rshelljeffrey@jeffrey-N56DP:~/cs100/rshell$ exit
+exit
+
+Script done on Mon 09 Mar 2015 09:12:18 AM PDT

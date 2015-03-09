@@ -473,11 +473,11 @@ bool process_singleline(vector<string> tempvect, int index)
 			snippet.push_back(tempvect[i]);
 		}
 	}
-	cout << "What's currently in snippet after running through line." << endl;
-	for(unsigned c = 0; c < snippet.size(); c++)
-	{
-		cout << snippet[c] << " ";
-	}
+	//cout << "What's currently in snippet after running through line." << endl;
+	//for(unsigned c = 0; c < snippet.size(); c++)
+	//{
+//		cout << snippet[c] << " ";
+//	}
 	//cout << endl;
 	if(andcase)
 	{
@@ -556,20 +556,21 @@ void processlines(vector<string> &commandinput, vector<unsigned> linemarker)
 
 int main(int argc, char** argv)
 {
-	char hostname[120];
-	char *loginname = getlogin();
+	//char hostname[120];
+	//char *loginname = getlogin();
 	vector<unsigned> linemarker;
 	vector<string> commandinput;
-	gethostname(hostname, sizeof(hostname));
-	if(loginname == NULL)
-	{
-		perror("There was an error obtaining the username with getlogin(). ");
-	}
+	//gethostname(hostname, sizeof(hostname));
+	//if(loginname == NULL)
+	//{
+	//	perror("There was an error obtaining the username with getlogin(). ");
+	//}
 	while(!exitbool)
 	{
 		signal(SIGINT, handler);
 		//signal(SIGTSTP, handler);
-		cout << loginname << "@" << hostname << ":" << getenv("PWD") << "% ";
+		//cout << loginname << "@" << hostname << ":" << getenv("PWD") << "% ";
+		cout << getenv("PWD") << "% ";
 		parseinput(commandinput, linemarker);
 		processlines(commandinput, linemarker);
 		linemarker.clear();
