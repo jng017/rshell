@@ -6,11 +6,12 @@ This project is currently in development, and as is only a very simplistic base 
 The rshell executable currently supports these capabilities of a shell.
 ```
 Printing via command prompt.
-Performing executables with argumentList functionality.
+Performing executables with argumentList functionality using execv().
 Connectors(&&, ||, ;) can be used freely within the code to execute multiple commands.
 Displays various error messages of executables that fail to execute.
 Handle general redirection around the shell(<, >, >>, |).
-Exit the shell by typing 'exit'.
+Built-in `cd` command.
+Exit the shell by typing 'exit'. Sending a ^C signal(SIGINT) will not interrupt the shell, but any child processes set up by the shell.
 ```
 
 #Installation Guide
